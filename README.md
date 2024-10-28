@@ -16,7 +16,7 @@
 * Investing on resources makes the player receive 1 extra golden coin at that turn per island that they control, but decreases the happiness by 20 points on each of these islands.
 * Investing on happiness makes the player pay 1 golden coin per each island that they control, but increase happiness levels by 20 points on each island.
 * Acquiring one empty island costs 3 golden coins and decreases the happiness levels of 50% of that player's islands by half. There are a limited number of empty islands, that are defined at the beginning of the game when selecting the play style of the match. If selected friendly, there will be 3 * {number of players} empty islands available. If selected moderate, there will be 2 * {number of players} empty islands available. And if selected aggressive, there will be {number of players} empty islands.
-* Attacking one player has a little bit more of nuance. If the attacker has more islands and an overall bigger happiness level (the sum of all happiness levels of the islands the player controls), then they steal the island from their victim, acquiring it with a happiness level set to 80. If they have more islands but don't surpass their hapiness level, then they steal the island with a happiness level set to 20. Any other scenario will then require both players to roll a die. The player who scores the highest number on the die gets to keep all of their islands and steal one island from the opponent who scored lower on the die, with a happiness level set to 50.
+* Attacking one player has a little bit more of nuance. It costs 4 golden coins. If the attacker has more islands and an overall bigger happiness level (the sum of all happiness levels of the islands the player controls), then they steal the island from their victim, acquiring it with a happiness level set to 80. If they have more islands but don't surpass their hapiness level, then they steal the island with a happiness level set to 20. Any other scenario will then require both players to roll a die. The player who scores the highest number on the die gets to keep all of their islands and steal one island from the opponent who scored lower, with the happiness level of that stolen island set to 50.
 * A player automatically loses an island if the happiness level of their population reaches 0.
 * A player automatically is removed from the game (loses) if they do not control any island.
 * The game is over when there's only one player remaining.
@@ -24,4 +24,6 @@
 #### Variables:
 * Players;
 * Islands of these players;
-* Happiness level of each island controlled by the player (from 0 to 100).
+* Happiness level of each island controlled by the player (from 0 to 100);
+* The turn counter;
+* A control that indicates whether a player has already completed their turn or not.
