@@ -137,6 +137,7 @@ OPERATIONS
     AttackPlayer(attacker, victim) =
         PRE
             attacker : players &
+            attacker /: turn_completed &
             victim : players &
             attacker /= victim &
             player_coins(attacker) >= 4
@@ -201,5 +202,22 @@ OPERATIONS
                 turn_completed := {};
                 turn := turn + 1
             END
+        END;
+    
+    overall_happiness <-- QueryOverallPlayerHappiness(p) =
+        PRE
+            p : players &
+            turn > 0
+        THEN
+            overall_happiness := SIGMA(i).(i : player_islands(p) | island_happiness(i))
         END
 END
+
+/*
+    TODO:
+    - Anytime that a player loses an island, the island should be added to the available_islands set
+    - Anytime that a happiness score of an island drops to zero, the player loses that island
+    - Anytime that the player loses all islands, they need to be removed from the game
+    - Check invariants to reflect that
+    - Add operation that ends the game when only one player is left
+*/
