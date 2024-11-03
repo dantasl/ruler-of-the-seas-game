@@ -138,13 +138,22 @@ OPERATIONS
         PRE
             card(turn_completed) = card(players) & turn > 0
         THEN
-            turn_completed := {} ||
-            //player_coins := player_coins + (players * {1}) ||
-            turn := turn + 1
-            /*LET new_player_coins BE new_player_coins = { p |-> player_coins(p) | p : players } IN
-                turn_completed := {} ||
-                player_coins := new_player_coins ||
+            VAR
+                remaining_players
+            IN
+                remaining_players := players;
+                WHILE remaining_players /= {} DO
+                    ANY i WHERE i : remaining_players THEN
+                        player_coins(i) := player_coins(i) + 1;
+                        remaining_players := remaining_players - { i }
+                    END
+                INVARIANT
+                    remaining_players <: players
+                VARIANT
+                    card(remaining_players)
+                END;
+                turn_completed := {};
                 turn := turn + 1
-            END*/
+            END
         END
 END
