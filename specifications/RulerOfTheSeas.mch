@@ -69,7 +69,7 @@ OPERATIONS
             ANY i WHERE i : available_islands THEN
                 player_islands(p) := player_islands(p) \/ {i} ||
                 available_islands := available_islands - {i} ||
-                island_happiness(i) := MAX_HAPPINESS / 2
+                island_happiness(i) := 50
             END ||
             turn_completed := turn_completed \/ {p}
         END;
@@ -87,7 +87,7 @@ OPERATIONS
                 remaining_islands := player_islands(p);
                 WHILE remaining_islands /= {} DO
                     ANY i WHERE i : remaining_islands THEN
-                        IF island_happiness(i) - 20 < 0 THEN
+                        IF island_happiness(i) - 20 <= 0 THEN
                             player_islands(p) := player_islands(p) - {i};
                             available_islands := available_islands \/ {i}
                         ELSE
@@ -118,7 +118,7 @@ OPERATIONS
                 remaining_islands := player_islands(p);
                 WHILE remaining_islands /= {} DO
                     ANY i WHERE i : remaining_islands THEN
-                        IF island_happiness(i) + 20 > MAX_HAPPINESS THEN
+                        IF island_happiness(i) + 20 >= MAX_HAPPINESS THEN
                             island_happiness(i) := MAX_HAPPINESS
                         ELSE
                             island_happiness(i) := island_happiness(i) + 20
@@ -190,9 +190,13 @@ OPERATIONS
             IN
                 remaining_players := players;
                 WHILE remaining_players /= {} DO
-                    ANY i WHERE i : remaining_players THEN
-                        player_coins(i) := player_coins(i) + 1;
-                        remaining_players := remaining_players - { i }
+                    ANY p WHERE p : remaining_players THEN
+                        IF card(player_islands(p)) = 0 THEN
+                            players := players - {p}
+                        ELSE
+                            player_coins(p) := player_coins(p) + 1
+                        END;
+                        remaining_players := remaining_players - {p}
                     END
                 INVARIANT
                     remaining_players <: players
@@ -204,6 +208,14 @@ OPERATIONS
             END
         END;
     
+    winner <-- EndGame =
+        PRE
+            card(players) = 1 &
+            turn > 0
+        THEN
+            winner := players || turn := 0
+        END;
+    
     overall_happiness <-- QueryOverallPlayerHappiness(p) =
         PRE
             p : players &
@@ -212,12 +224,3 @@ OPERATIONS
             overall_happiness := SIGMA(i).(i : player_islands(p) | island_happiness(i))
         END
 END
-
-/*
-    TODO:
-    - Anytime that a player loses an island, the island should be added to the available_islands set
-    - Anytime that a happiness score of an island drops to zero, the player loses that island
-    - Anytime that the player loses all islands, they need to be removed from the game
-    - Check invariants to reflect that
-    - Add operation that ends the game when only one player is left
-*/
