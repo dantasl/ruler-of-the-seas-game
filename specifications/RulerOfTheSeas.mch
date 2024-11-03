@@ -133,6 +133,52 @@ OPERATIONS
                 turn_completed := turn_completed \/ {p}
             END
         END;
+    
+    AttackPlayer(attacker, victim) =
+        PRE
+            attacker : players &
+            victim : players &
+            attacker /= victim &
+            player_coins(attacker) >= 4
+        THEN
+            VAR
+                attacker_happiness, victim_happiness
+            IN
+                player_coins(attacker) := player_coins(attacker) - 4;
+                attacker_happiness := SIGMA(i).(i : player_islands(attacker) | island_happiness(i));
+                victim_happiness := SIGMA(i).(i : player_islands(victim) | island_happiness(i));
+                IF card(player_islands(attacker)) > card(player_islands(victim)) & attacker_happiness > victim_happiness THEN
+                    ANY i WHERE i : player_islands(victim) THEN
+                        player_islands(attacker) := player_islands(attacker) \/ {i};
+                        player_islands(victim) := player_islands(victim) - {i};
+                        island_happiness(i) := 80
+                    END
+                ELSIF card(player_islands(attacker)) > card(player_islands(victim)) & attacker_happiness < victim_happiness THEN
+                    ANY i WHERE i : player_islands(victim) THEN
+                        player_islands(attacker) := player_islands(attacker) \/ {i};
+                        player_islands(victim) := player_islands(victim) - {i};
+                        island_happiness(i) := 20
+                    END
+                ELSE
+                    ANY dice_attacker, dice_victim WHERE dice_attacker : 1..6 & dice_victim : 1..6 THEN
+                        IF dice_attacker > dice_victim THEN
+                            ANY i WHERE i : player_islands(victim) THEN
+                                player_islands(attacker) := player_islands(attacker) \/ {i};
+                                player_islands(victim) := player_islands(victim) - {i};
+                                island_happiness(i) := 50
+                            END
+                        ELSE
+                            ANY i WHERE i : player_islands(attacker) THEN
+                                player_islands(victim) := player_islands(victim) \/ {i};
+                                player_islands(attacker) := player_islands(attacker) - {i};
+                                island_happiness(i) := 50
+                            END
+                        END
+                    END
+                END;
+                turn_completed := turn_completed \/ {attacker}
+            END
+        END;
 
     NextTurn =
         PRE
