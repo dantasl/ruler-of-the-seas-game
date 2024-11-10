@@ -95,27 +95,10 @@ OPERATIONS
             player_coins(p) >= card(player_islands(p)) &
             turn > 0
         THEN
-            VAR
-                remaining_islands
-            IN
-                player_coins(p) := player_coins(p) - card(player_islands(p));
-                remaining_islands := player_islands(p);
-                WHILE remaining_islands /= {} DO
-                    ANY i WHERE i : remaining_islands THEN
-                        IF island_happiness(i) + 20 >= MAX_HAPPINESS THEN
-                            island_happiness(i) := MAX_HAPPINESS
-                        ELSE
-                            island_happiness(i) := island_happiness(i) + 20
-                        END;
-                        remaining_islands := remaining_islands - { i }
-                    END
-                INVARIANT
-                    remaining_islands <: player_islands(p)
-                VARIANT
-                    card(remaining_islands)
-                END;
-                turn_completed := turn_completed \/ {p}
-            END
+            player_coins(p) := player_coins(p) - card(player_islands(p)) ||
+            island_happiness := island_happiness <+ %i.(i : player_islands(p) | island_happiness(i) + 20);
+            island_happiness := island_happiness <+ %i.(i : player_islands(p) & island_happiness(i) > MAX_HAPPINESS | MAX_HAPPINESS) ||
+            turn_completed := turn_completed \/ {p}
         END;
     
     AttackPlayer(attacker, victim) =
