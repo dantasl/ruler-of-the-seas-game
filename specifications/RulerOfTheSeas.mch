@@ -80,7 +80,12 @@ OPERATIONS
             p /: turn_completed &
             turn > 0
         THEN
-            
+            player_coins(p) := player_coins(p) + card(player_islands(p)) ||
+            island_happiness := island_happiness <+ %i.(i : player_islands(p) | island_happiness(i) - 20);
+            island_happiness := island_happiness <+ %i.(i : player_islands(p) & island_happiness(i) < 0 | 0);
+            available_islands := available_islands \/ { i | i : player_islands(p) & island_happiness(i) <= 0 };
+            player_islands(p) := player_islands(p) - { i | i : player_islands(p) & island_happiness(i) <= 0 } ||
+            turn_completed := turn_completed \/ {p}
         END;
 
     InvestOnHappiness(p) =
@@ -127,6 +132,7 @@ OPERATIONS
                 player_coins(attacker) := player_coins(attacker) - 4;
                 attacker_happiness := SIGMA(i).(i : player_islands(attacker) | island_happiness(i));
                 victim_happiness := SIGMA(i).(i : player_islands(victim) | island_happiness(i));
+                
                 IF card(player_islands(attacker)) > card(player_islands(victim)) & attacker_happiness > victim_happiness THEN
                     ANY i WHERE i : player_islands(victim) THEN
                         player_islands(attacker) := player_islands(attacker) \/ {i};
@@ -168,7 +174,7 @@ OPERATIONS
             turn := turn + 1 ||
             turn_completed := {} ||
             player_coins := player_coins <+ %p.(p : players | player_coins(p) + 1) ||
-            players := { p | p : players & player_islands(p) /= {} }
+            players := { p | p : players & card(player_islands(p)) > 0}
         END;
 
     winner <-- EndGame =
@@ -177,5 +183,5 @@ OPERATIONS
             turn > 0
         THEN
             winner := players || turn := 0
-        END;
+        END
 END
