@@ -80,28 +80,7 @@ OPERATIONS
             p /: turn_completed &
             turn > 0
         THEN
-            VAR
-                remaining_islands
-            IN
-                player_coins(p) := player_coins(p) + card(player_islands(p));
-                remaining_islands := player_islands(p);
-                WHILE remaining_islands /= {} DO
-                    ANY i WHERE i : remaining_islands THEN
-                        IF island_happiness(i) - 20 <= 0 THEN
-                            player_islands(p) := player_islands(p) - {i};
-                            available_islands := available_islands \/ {i}
-                        ELSE
-                            island_happiness(i) := island_happiness(i) - 20
-                        END;
-                        remaining_islands := remaining_islands - { i }
-                    END
-                INVARIANT
-                    remaining_islands <: player_islands(p)
-                VARIANT
-                    card(remaining_islands)
-                END;
-                turn_completed := turn_completed \/ {p}
-            END
+            
         END;
 
     InvestOnHappiness(p) =
@@ -183,31 +162,15 @@ OPERATIONS
 
     NextTurn =
         PRE
-            card(turn_completed) = card(players) & turn > 0
+            card(turn_completed) = card(players) &
+            turn > 0
         THEN
-            VAR
-                remaining_players
-            IN
-                remaining_players := players;
-                WHILE remaining_players /= {} DO
-                    ANY p WHERE p : remaining_players THEN
-                        IF card(player_islands(p)) = 0 THEN
-                            players := players - {p}
-                        ELSE
-                            player_coins(p) := player_coins(p) + 1
-                        END;
-                        remaining_players := remaining_players - {p}
-                    END
-                INVARIANT
-                    remaining_players <: players
-                VARIANT
-                    card(remaining_players)
-                END;
-                turn_completed := {};
-                turn := turn + 1
-            END
+            turn := turn + 1 ||
+            turn_completed := {} ||
+            player_coins := player_coins <+ %p.(p : players | player_coins(p) + 1) ||
+            players := { p | p : players & player_islands(p) /= {} }
         END;
-    
+
     winner <-- EndGame =
         PRE
             card(players) = 1 &
@@ -215,12 +178,4 @@ OPERATIONS
         THEN
             winner := players || turn := 0
         END;
-    
-    overall_happiness <-- QueryOverallPlayerHappiness(p) =
-        PRE
-            p : players &
-            turn > 0
-        THEN
-            overall_happiness := SIGMA(i).(i : player_islands(p) | island_happiness(i))
-        END
 END
