@@ -92,12 +92,14 @@ OPERATIONS
             turn_completed := turn_completed \/ {p}
         END;
     
-    AttackPlayer(attacker, victim) =
+    AttackPlayer(attacker, victim, dice_attacker, dice_victim) =
         PRE
             attacker : players &
             attacker /: turn_completed &
             victim : players &
             attacker /= victim &
+            dice_attacker : 1..6 &
+            dice_victim : 1..6 &
             player_coins(attacker) >= 4
         THEN
             VAR
@@ -120,19 +122,17 @@ OPERATIONS
                         island_happiness(i) := ATTACK_FAIL_HAPPINESS
                     END
                 ELSE
-                    ANY dice_attacker, dice_victim WHERE dice_attacker : 1..6 & dice_victim : 1..6 THEN
-                        IF dice_attacker > dice_victim THEN
-                            ANY i WHERE i : player_islands(victim) THEN
-                                player_islands(attacker) := player_islands(attacker) \/ {i};
-                                player_islands(victim) := player_islands(victim) - {i};
-                                island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
-                            END
-                        ELSE
-                            ANY i WHERE i : player_islands(attacker) THEN
-                                player_islands(victim) := player_islands(victim) \/ {i};
-                                player_islands(attacker) := player_islands(attacker) - {i};
-                                island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
-                            END
+                    IF dice_attacker > dice_victim THEN
+                        ANY i WHERE i : player_islands(victim) THEN
+                            player_islands(attacker) := player_islands(attacker) \/ {i};
+                            player_islands(victim) := player_islands(victim) - {i};
+                            island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
+                        END
+                    ELSE
+                        ANY i WHERE i : player_islands(attacker) THEN
+                            player_islands(victim) := player_islands(victim) \/ {i};
+                            player_islands(attacker) := player_islands(attacker) - {i};
+                            island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
                         END
                     END
                 END;
