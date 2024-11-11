@@ -1,15 +1,21 @@
 MACHINE RulerOfTheSeas
 SETS
-    PLAYER = {p1, p2, p3, p4};
-    ISLAND = {i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12}
+    PLAYER; ISLAND
 
 CONSTANTS
-    MAX_PLAYERS, MIN_PLAYERS, MAX_HAPPINESS
+    MAX_PLAYERS, MIN_PLAYERS, MAX_HAPPINESS, HAPPINESS_FEE,
+    ISLAND_HAPPINESS_ACQUIRED, ATTACK_SUCCESS_HAPPINESS, ATTACK_FAIL_HAPPINESS
 
 PROPERTIES
+    card(ISLAND) >= 12 &
     MAX_PLAYERS = 4 & 
     MIN_PLAYERS = 2 &
-    MAX_HAPPINESS = 100
+    card(PLAYER) >= MIN_PLAYERS &
+    MAX_HAPPINESS = 100 &
+    HAPPINESS_FEE = 20 &
+    ISLAND_HAPPINESS_ACQUIRED = 50 &
+    ATTACK_SUCCESS_HAPPINESS = 80 &
+    ATTACK_FAIL_HAPPINESS = 20
 
 VARIABLES
     players, player_coins, player_islands, available_islands,
@@ -17,6 +23,7 @@ VARIABLES
 
 INVARIANT
     players <: PLAYER &
+    card(players) <= MAX_PLAYERS &
     player_coins : players --> NAT &
     player_islands : players --> POW(ISLAND) &
     available_islands <: ISLAND &
@@ -69,7 +76,7 @@ OPERATIONS
             ANY i WHERE i : available_islands THEN
                 player_islands(p) := player_islands(p) \/ {i} ||
                 available_islands := available_islands - {i} ||
-                island_happiness(i) := 50
+                island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
             END ||
             turn_completed := turn_completed \/ {p}
         END;
@@ -81,7 +88,7 @@ OPERATIONS
             turn > 0
         THEN
             player_coins(p) := player_coins(p) + card(player_islands(p)) ||
-            island_happiness := island_happiness <+ %i.(i : player_islands(p) | island_happiness(i) - 20);
+            island_happiness := island_happiness <+ %i.(i : player_islands(p) | island_happiness(i) - HAPPINESS_FEE);
             island_happiness := island_happiness <+ %i.(i : player_islands(p) & island_happiness(i) < 0 | 0);
             available_islands := available_islands \/ { i | i : player_islands(p) & island_happiness(i) <= 0 };
             player_islands(p) := player_islands(p) - { i | i : player_islands(p) & island_happiness(i) <= 0 } ||
@@ -96,7 +103,7 @@ OPERATIONS
             turn > 0
         THEN
             player_coins(p) := player_coins(p) - card(player_islands(p)) ||
-            island_happiness := island_happiness <+ %i.(i : player_islands(p) | island_happiness(i) + 20);
+            island_happiness := island_happiness <+ %i.(i : player_islands(p) | island_happiness(i) + HAPPINESS_FEE);
             island_happiness := island_happiness <+ %i.(i : player_islands(p) & island_happiness(i) > MAX_HAPPINESS | MAX_HAPPINESS) ||
             turn_completed := turn_completed \/ {p}
         END;
@@ -120,13 +127,13 @@ OPERATIONS
                     ANY i WHERE i : player_islands(victim) THEN
                         player_islands(attacker) := player_islands(attacker) \/ {i};
                         player_islands(victim) := player_islands(victim) - {i};
-                        island_happiness(i) := 80
+                        island_happiness(i) := ATTACK_SUCCESS_HAPPINESS
                     END
                 ELSIF card(player_islands(attacker)) > card(player_islands(victim)) & attacker_happiness < victim_happiness THEN
                     ANY i WHERE i : player_islands(victim) THEN
                         player_islands(attacker) := player_islands(attacker) \/ {i};
                         player_islands(victim) := player_islands(victim) - {i};
-                        island_happiness(i) := 20
+                        island_happiness(i) := ATTACK_FAIL_HAPPINESS
                     END
                 ELSE
                     ANY dice_attacker, dice_victim WHERE dice_attacker : 1..6 & dice_victim : 1..6 THEN
@@ -134,13 +141,13 @@ OPERATIONS
                             ANY i WHERE i : player_islands(victim) THEN
                                 player_islands(attacker) := player_islands(attacker) \/ {i};
                                 player_islands(victim) := player_islands(victim) - {i};
-                                island_happiness(i) := 50
+                                island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
                             END
                         ELSE
                             ANY i WHERE i : player_islands(attacker) THEN
                                 player_islands(victim) := player_islands(victim) \/ {i};
                                 player_islands(attacker) := player_islands(attacker) - {i};
-                                island_happiness(i) := 50
+                                island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
                             END
                         END
                     END
