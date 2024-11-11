@@ -1,0 +1,30 @@
+ISLAND e PLAYER deveriam ser um conjunto não definido com uma cardinalidade mínima
+
+INVARIANT deve ter várias outras propriedades como, por exemplo, propriedades das regras do jogo.
+
+    Exemplos:
+        os conjuntos de ilhas dos jogadores não deveriam ter interseção
+        a cardinalidade do conjunto de ilhas disponíveis tem que ser maior ou igual a quantidade de jogadores
+
+Restrições sobre card(players) devem estar no invariante.
+
+A felicidade inicial 50 deveria ser uma contante
+
+Criar uma máquina de contexto com constantes e conjuntos
+
+Remover while da máquina abstrata
+    investOnResource
+    investOnHappiness
+    nextTurn
+
+AttackPlayer usar constantes ao invés de 80, 20 e 50.
+
+dice_attacker, dice_victim deveriam ser argumentos das operações
+
+Criar uma variável com estado do jogo para poder habilitar jogadas
+e verificar resultados.
+
+
+Lucas Next Steps:
+* Refine non-determinism 
+* Remove SETS and use an ARRAY

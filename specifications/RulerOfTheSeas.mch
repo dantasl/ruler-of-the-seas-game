@@ -12,13 +12,16 @@ INVARIANT
     player_islands : players --> POW(ISLAND) &
     available_islands <: ISLAND &
     island_happiness : ISLAND --> (0..MAX_HAPPINESS) &
-    !p1, p2.(p1 : players & p2 : players & p1 /= p2 => player_islands(p1) /\ player_islands(p2) = {}) & // No player has the same island as another player
-    !p.(p : players => player_islands(p) /\ available_islands = {}) & // No player has an island that is available
-    union(ran(player_islands)) \/ available_islands = ISLAND & // Union of all player islands and available islands is equal to all islands
-    !i.(i : ISLAND => island_happiness(i) : 0..MAX_HAPPINESS) & // All islands have a happiness value between 0 and MAX_HAPPINESS
-    !p.(p : players => player_coins(p) >= 0 & card(player_islands(p)) >= 0) & // All players have a non-negative number of coins and islands
     turn_completed <: players &
-    turn : NAT
+    turn : NAT &
+    // No player has the same island as another player
+    !p1, p2.(p1 : players & p2 : players & p1 /= p2 => player_islands(p1) /\ player_islands(p2) = {}) & 
+    // No player has an island that is available
+    UNION pp.(pp : dom(player_islands) | player_islands(pp)) /\ available_islands = {} &
+    // Union of all player islands and available islands is equal to all islands
+    UNION pp.(pp : dom(player_islands) | player_islands(pp)) \/ available_islands = ISLAND &
+    // All islands have a happiness value between 0 and MAX_HAPPINESS 
+    ran(island_happiness) <: 0..MAX_HAPPINESS
 
 INITIALISATION
     players := {} ||
@@ -77,9 +80,8 @@ OPERATIONS
             turn > 0
         THEN
             player_coins(p) := player_coins(p) + card(player_islands(p)) ||
-            island_happiness := island_happiness <+ %i.(i : player_islands(p) | island_happiness(i) - HAPPINESS_FEE);
-            island_happiness := island_happiness <+ %i.(i : player_islands(p) & island_happiness(i) < 0 | 0);
-            available_islands := available_islands \/ { i | i : player_islands(p) & island_happiness(i) <= 0 };
+            island_happiness := island_happiness <+ %i.(i : player_islands(p) | max({0, island_happiness(i) - HAPPINESS_FEE}))) ||
+            available_islands := available_islands \/ { i | i : player_islands(p) & island_happiness(i) <= 0 } ||
             player_islands(p) := player_islands(p) - { i | i : player_islands(p) & island_happiness(i) <= 0 } ||
             turn_completed := turn_completed \/ {p}
         END;
