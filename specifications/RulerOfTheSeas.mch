@@ -33,17 +33,17 @@ INITIALISATION
     turn := 0
 
 OPERATIONS
-    AddPlayer(p) =
+    AddPlayer(pp) =
         PRE
-            p : PLAYER & card(players) < MAX_PLAYERS &
-            p /: players &
+            pp : PLAYER & card(players) < MAX_PLAYERS &
+            pp /: players &
             turn = 0
         THEN
-            players := players \/ {p} ||
-            player_coins(p) := 2 ||
-            ANY i WHERE i : available_islands THEN
-                player_islands(p) := {i} ||
-                available_islands := available_islands - {i}
+            players := players \/ {pp} ||
+            player_coins(pp) := 2 ||
+            ANY ii WHERE ii : available_islands THEN
+                player_islands(pp) := {ii} ||
+                available_islands := available_islands - {ii}
             END
         END;
         
@@ -56,47 +56,54 @@ OPERATIONS
             turn := 1
         END;
     
-    AcquireIsland(p) =
+    AcquireIsland(pp) =
         PRE
-            p : players &
-            p /: turn_completed &
+            pp : players &
+            pp /: turn_completed &
             card(available_islands) > 0 &
             turn > 0 &
-            player_coins(p) >= 3
+            player_coins(pp) >= 3
         THEN
-            player_coins(p) := player_coins(p) - 3 ||
-            ANY i WHERE i : available_islands THEN
-                player_islands(p) := player_islands(p) \/ {i} ||
-                available_islands := available_islands - {i} ||
-                island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
+            player_coins(pp) := player_coins(pp) - 3 ||
+            ANY ii WHERE ii : available_islands THEN
+                player_islands(pp) := player_islands(pp) \/ {ii} ||
+                available_islands := available_islands - {ii} ||
+                island_happiness(ii) := ISLAND_HAPPINESS_ACQUIRED
             END ||
-            turn_completed := turn_completed \/ {p}
+            turn_completed := turn_completed \/ {pp}
         END;
     
-    InvestOnResources(p) =
+    InvestOnResources(pp) =
         PRE
-            p : players &
-            p /: turn_completed &
+            pp : players &
+            pp /: turn_completed &
             turn > 0
         THEN
-            player_coins(p) := player_coins(p) + card(player_islands(p)) ||
-            island_happiness := island_happiness <+ %i.(i : player_islands(p) | max({0, island_happiness(i) - HAPPINESS_FEE}))) ||
-            available_islands := available_islands \/ { i | i : player_islands(p) & island_happiness(i) <= 0 } ||
-            player_islands(p) := player_islands(p) - { i | i : player_islands(p) & island_happiness(i) <= 0 } ||
-            turn_completed := turn_completed \/ {p}
+            ANY ih
+            WHERE ih = island_happiness <+ %ii.(ii : player_islands(pp) | max({0, island_happiness(ii) - HAPPINESS_FEE}))
+            THEN
+                player_coins(pp) := player_coins(pp) + card(player_islands(pp)) ||
+                island_happiness := ih ||
+                available_islands := available_islands \/ { ii | ii : player_islands(pp) & ih(ii) <= 0 } ||
+                player_islands(pp) := player_islands(pp) - { ii | ii : player_islands(pp) & ih(ii) <= 0 } ||
+                turn_completed := turn_completed \/ {pp}
+            END
         END;
 
-    InvestOnHappiness(p) =
+    InvestOnHappiness(pp) =
         PRE
-            p : players &
-            p /: turn_completed &
-            player_coins(p) >= card(player_islands(p)) &
+            pp : players &
+            pp /: turn_completed &
+            player_coins(pp) >= card(player_islands(pp)) &
             turn > 0
         THEN
-            player_coins(p) := player_coins(p) - card(player_islands(p)) ||
-            island_happiness := island_happiness <+ %i.(i : player_islands(p) | island_happiness(i) + HAPPINESS_FEE);
-            island_happiness := island_happiness <+ %i.(i : player_islands(p) & island_happiness(i) > MAX_HAPPINESS | MAX_HAPPINESS) ||
-            turn_completed := turn_completed \/ {p}
+            ANY ih
+            WHERE ih = island_happiness <+ %ii.(ii : player_islands(pp) | min({100, island_happiness(ii) + HAPPINESS_FEE}))
+            THEN
+                player_coins(pp) := player_coins(pp) - card(player_islands(pp)) ||
+                island_happiness := ih ||
+                turn_completed := turn_completed \/ {pp}
+            END
         END;
     
     AttackPlayer(attacker, victim, dice_attacker, dice_victim) =
@@ -112,34 +119,33 @@ OPERATIONS
             VAR
                 attacker_happiness, victim_happiness
             IN
-                player_coins(attacker) := player_coins(attacker) - 4;
-                attacker_happiness := SIGMA(i).(i : player_islands(attacker) | island_happiness(i));
-                victim_happiness := SIGMA(i).(i : player_islands(victim) | island_happiness(i));
-                
+                player_coins(attacker) := player_coins(attacker) - 4 ||
+                attacker_happiness := SIGMA(ii).(ii : player_islands(attacker) | island_happiness(ii)) ||
+                victim_happiness := SIGMA(ii).(ii : player_islands(victim) | island_happiness(ii)) ||
                 IF card(player_islands(attacker)) > card(player_islands(victim)) & attacker_happiness > victim_happiness THEN
-                    ANY i WHERE i : player_islands(victim) THEN
-                        player_islands(attacker) := player_islands(attacker) \/ {i};
-                        player_islands(victim) := player_islands(victim) - {i};
-                        island_happiness(i) := ATTACK_SUCCESS_HAPPINESS
+                    ANY ii WHERE ii : player_islands(victim) THEN
+                        player_islands(attacker) := player_islands(attacker) \/ {ii} ||
+                        player_islands(victim) := player_islands(victim) - {ii} ||
+                        island_happiness(ii) := ATTACK_SUCCESS_HAPPINESS
                     END
                 ELSIF card(player_islands(attacker)) > card(player_islands(victim)) & attacker_happiness < victim_happiness THEN
-                    ANY i WHERE i : player_islands(victim) THEN
-                        player_islands(attacker) := player_islands(attacker) \/ {i};
-                        player_islands(victim) := player_islands(victim) - {i};
-                        island_happiness(i) := ATTACK_FAIL_HAPPINESS
+                    ANY ii WHERE ii : player_islands(victim) THEN
+                        player_islands(attacker) := player_islands(attacker) \/ {ii} ||
+                        player_islands(victim) := player_islands(victim) - {ii} ||
+                        island_happiness(ii) := ATTACK_FAIL_HAPPINESS
                     END
                 ELSE
                     IF dice_attacker > dice_victim THEN
-                        ANY i WHERE i : player_islands(victim) THEN
-                            player_islands(attacker) := player_islands(attacker) \/ {i};
-                            player_islands(victim) := player_islands(victim) - {i};
-                            island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
+                        ANY ii WHERE ii : player_islands(victim) THEN
+                            player_islands(attacker) := player_islands(attacker) \/ {ii} ||
+                            player_islands(victim) := player_islands(victim) - {ii} ||
+                            island_happiness(ii) := ISLAND_HAPPINESS_ACQUIRED
                         END
                     ELSE
-                        ANY i WHERE i : player_islands(attacker) THEN
-                            player_islands(victim) := player_islands(victim) \/ {i};
-                            player_islands(attacker) := player_islands(attacker) - {i};
-                            island_happiness(i) := ISLAND_HAPPINESS_ACQUIRED
+                        ANY ii WHERE ii : player_islands(attacker) THEN
+                            player_islands(victim) := player_islands(victim) \/ {ii} ||
+                            player_islands(attacker) := player_islands(attacker) - {ii} ||
+                            island_happiness(ii) := ISLAND_HAPPINESS_ACQUIRED
                         END
                     END
                 END;
@@ -154,8 +160,8 @@ OPERATIONS
         THEN
             turn := turn + 1 ||
             turn_completed := {} ||
-            player_coins := player_coins <+ %p.(p : players | player_coins(p) + 1) ||
-            players := { p | p : players & card(player_islands(p)) > 0}
+            player_coins := player_coins <+ %pp.(pp : players | player_coins(pp) + 1) ||
+            players := { pp | pp : players & card(player_islands(pp)) > 0}
         END;
 
     winner <-- EndGame =
