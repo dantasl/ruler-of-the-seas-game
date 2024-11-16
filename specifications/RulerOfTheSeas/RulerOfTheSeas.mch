@@ -3,7 +3,7 @@ SEES RulerOfTheSeas_Context
 
 VARIABLES
     players, player_coins, player_islands, available_islands,
-    turn, island_happiness, turn_completed
+    island_happiness, turn_completed, game_state, winner
 
 INVARIANT
     players <: PLAYER &
@@ -13,7 +13,11 @@ INVARIANT
     available_islands <: ISLAND &
     island_happiness : ISLAND --> (0..MAX_HAPPINESS) &
     turn_completed <: players &
-    turn : NAT &
+    game_state : GAME_STATE &
+    winner <: PLAYER &
+    card(winner) <= 1 &
+    (game_state = FINISHED => (card(players) = 1 & winner = players)) &
+    (game_state /= FINISHED => winner = {}) &
     // No player has the same island as another player
     !(p1, p2) . (p1 : players & p2 : players & p1 /= p2 => player_islands(p1) /\ player_islands(p2) = {}) & 
     // No player has an island that is available
@@ -30,14 +34,15 @@ INITIALISATION
     available_islands := ISLAND ||
     island_happiness := ISLAND * {MAX_HAPPINESS} ||
     turn_completed := {} ||
-    turn := 0
+    winner := {} ||
+    game_state := CONFIGURING
 
 OPERATIONS
     AddPlayer(pp) =
         PRE
             pp : PLAYER & card(players) < MAX_PLAYERS &
             pp /: players &
-            turn = 0
+            game_state = CONFIGURING
         THEN
             players := players \/ {pp} ||
             player_coins(pp) := 2 ||
@@ -51,9 +56,9 @@ OPERATIONS
         PRE
             card(players) >= MIN_PLAYERS &
             card(players) <= MAX_PLAYERS &
-            turn = 0
+            game_state = CONFIGURING
         THEN
-            turn := 1
+            game_state := PLAYING
         END;
     
     AcquireIsland(pp) =
@@ -61,8 +66,8 @@ OPERATIONS
             pp : players &
             pp /: turn_completed &
             card(available_islands) > 0 &
-            turn > 0 &
-            player_coins(pp) >= 3
+            player_coins(pp) >= 3 &
+            game_state = PLAYING
         THEN
             player_coins(pp) := player_coins(pp) - 3 ||
             ANY ii WHERE ii : available_islands THEN
@@ -77,7 +82,7 @@ OPERATIONS
         PRE
             pp : players &
             pp /: turn_completed &
-            turn > 0
+            game_state = PLAYING
         THEN
             ANY ih
             WHERE ih = island_happiness <+ %ii.(ii : player_islands(pp) | max({0, island_happiness(ii) - HAPPINESS_FEE}))
@@ -95,7 +100,7 @@ OPERATIONS
             pp : players &
             pp /: turn_completed &
             player_coins(pp) >= card(player_islands(pp)) &
-            turn > 0
+            game_state = PLAYING
         THEN
             ANY ih
             WHERE ih = island_happiness <+ %ii.(ii : player_islands(pp) | min({100, island_happiness(ii) + HAPPINESS_FEE}))
@@ -114,7 +119,8 @@ OPERATIONS
             attacker /= victim &
             dice_attacker : 1..6 &
             dice_victim : 1..6 &
-            player_coins(attacker) >= 4
+            player_coins(attacker) >= 4 &
+            game_state = PLAYING
         THEN
             ANY attacker_happiness, victim_happiness
             WHERE attacker_happiness = SIGMA(ii).(ii : player_islands(attacker) | island_happiness(ii)) &
@@ -148,19 +154,32 @@ OPERATIONS
     NextTurn =
         PRE
             card(turn_completed) = card(players) &
-            turn > 0
+            game_state = PLAYING
         THEN
-            turn := turn + 1 ||
             turn_completed := {} ||
             player_coins := player_coins <+ %pp.(pp : players | player_coins(pp) + 1) ||
-            players := { pp | pp : players & card(player_islands(pp)) > 0}
+            ANY pp
+            WHERE pp = { pp | pp : players & card(player_islands(pp)) > 0}
+            THEN
+                players := pp ||
+                IF card(pp) = 1 THEN
+                    winner := pp ||
+                    game_state := FINISHED
+                END
+            END
         END;
-
-    winner <-- EndGame =
+    
+    StartNewGame = 
         PRE
-            card(players) = 1 &
-            turn > 0
+            game_state = FINISHED
         THEN
-            winner := players || turn := 0
+            players := {} ||
+            player_coins := {} ||
+            player_islands := {} ||
+            available_islands := ISLAND ||
+            island_happiness := ISLAND * {MAX_HAPPINESS} ||
+            turn_completed := {} ||
+            winner := {} ||
+            game_state := CONFIGURING
         END
 END
