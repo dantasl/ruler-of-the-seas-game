@@ -15,7 +15,7 @@ INVARIANT
     turn_completed <: players &
     turn : NAT &
     // No player has the same island as another player
-    !p1, p2.(p1 : players & p2 : players & p1 /= p2 => player_islands(p1) /\ player_islands(p2) = {}) & 
+    !(p1, p2) . (p1 : players & p2 : players & p1 /= p2 => player_islands(p1) /\ player_islands(p2) = {}) & 
     // No player has an island that is available
     UNION pp.(pp : dom(player_islands) | player_islands(pp)) /\ available_islands = {} &
     // Union of all player islands and available islands is equal to all islands
@@ -116,40 +116,32 @@ OPERATIONS
             dice_victim : 1..6 &
             player_coins(attacker) >= 4
         THEN
-            VAR
-                attacker_happiness, victim_happiness
-            IN
+            ANY attacker_happiness, victim_happiness
+            WHERE attacker_happiness = SIGMA(ii).(ii : player_islands(attacker) | island_happiness(ii)) &
+                  victim_happiness = SIGMA(ii).(ii : player_islands(victim) | island_happiness(ii))
+            THEN
                 player_coins(attacker) := player_coins(attacker) - 4 ||
-                attacker_happiness := SIGMA(ii).(ii : player_islands(attacker) | island_happiness(ii)) ||
-                victim_happiness := SIGMA(ii).(ii : player_islands(victim) | island_happiness(ii)) ||
-                IF card(player_islands(attacker)) > card(player_islands(victim)) & attacker_happiness > victim_happiness THEN
-                    ANY ii WHERE ii : player_islands(victim) THEN
-                        player_islands(attacker) := player_islands(attacker) \/ {ii} ||
-                        player_islands(victim) := player_islands(victim) - {ii} ||
-                        island_happiness(ii) := ATTACK_SUCCESS_HAPPINESS
-                    END
-                ELSIF card(player_islands(attacker)) > card(player_islands(victim)) & attacker_happiness < victim_happiness THEN
-                    ANY ii WHERE ii : player_islands(victim) THEN
-                        player_islands(attacker) := player_islands(attacker) \/ {ii} ||
-                        player_islands(victim) := player_islands(victim) - {ii} ||
-                        island_happiness(ii) := ATTACK_FAIL_HAPPINESS
-                    END
-                ELSE
-                    IF dice_attacker > dice_victim THEN
-                        ANY ii WHERE ii : player_islands(victim) THEN
-                            player_islands(attacker) := player_islands(attacker) \/ {ii} ||
-                            player_islands(victim) := player_islands(victim) - {ii} ||
-                            island_happiness(ii) := ISLAND_HAPPINESS_ACQUIRED
-                        END
+                turn_completed := turn_completed \/ {attacker} ||
+                ANY ii, jj 
+                WHERE ii : player_islands(victim) & jj : player_islands(attacker)
+                THEN
+                    IF card(player_islands(attacker)) > card(player_islands(victim)) THEN
+                        IF attacker_happiness > victim_happiness THEN
+                            island_happiness(ii) := ATTACK_SUCCESS_HAPPINESS
+                        ELSIF attacker_happiness < victim_happiness THEN
+                            island_happiness(ii) := ATTACK_FAIL_HAPPINESS
+                        END ||
+                        player_islands := player_islands <+ { attacker |-> (player_islands(attacker) \/ {ii}), victim |-> (player_islands(victim) - {ii}) }
                     ELSE
-                        ANY ii WHERE ii : player_islands(attacker) THEN
-                            player_islands(victim) := player_islands(victim) \/ {ii} ||
-                            player_islands(attacker) := player_islands(attacker) - {ii} ||
-                            island_happiness(ii) := ISLAND_HAPPINESS_ACQUIRED
+                        IF dice_attacker > dice_victim THEN
+                            island_happiness(ii) := ISLAND_HAPPINESS_ACQUIRED ||
+                            player_islands := player_islands <+ { attacker |-> (player_islands(attacker) \/ {ii}), victim |-> (player_islands(victim) - {ii}) }
+                        ELSE
+                            island_happiness(jj) := ISLAND_HAPPINESS_ACQUIRED ||
+                            player_islands := player_islands <+ { attacker |-> (player_islands(attacker) - {jj}), victim |-> (player_islands(victim) \/ {jj}) }
                         END
                     END
-                END;
-                turn_completed := turn_completed \/ {attacker}
+                END
             END
         END;
 
