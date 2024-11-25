@@ -181,5 +181,58 @@ OPERATIONS
             turn_completed := {} ||
             winner := {} ||
             game_state := CONFIGURING
+        END;
+    
+    query_players <-- GetPlayers =
+        BEGIN
+            query_players := players
+        END;
+    
+    query_player_coins <-- GetPlayerCoins(pp) =
+        PRE
+            pp : players
+        THEN
+            query_player_coins := player_coins(pp)
+        END;
+    
+    query_player_islands <-- GetPlayerIslands(pp) =
+        PRE
+            pp : players
+        THEN
+            query_player_islands := player_islands(pp)
+        END;
+    
+    query_island_happiness <-- GetIslandHappiness(ii) = 
+        PRE
+            ii : ISLAND
+        THEN
+            query_island_happiness := island_happiness(ii)
+        END;
+    
+    query_available_islands <-- GetAvailableIslands = 
+        BEGIN
+            query_available_islands := available_islands
+        END;
+    
+    query_game_state <-- GetGameState =
+        BEGIN
+            query_game_state := game_state
+        END;
+    
+    query_turn_completed <-- GetTurnCompleted =
+        BEGIN
+            query_turn_completed := turn_completed
+        END;
+    
+    query_winner <-- GetWinner =
+        BEGIN
+            query_winner := winner
+        END;
+    
+    query_player_islands_happiness <-- GetPlayerIslandsHappiness(pp) =
+        PRE
+            pp : players
+        THEN
+            query_player_islands_happiness := SIGMA(ii).(ii : player_islands(pp) | island_happiness(ii))
         END
 END
