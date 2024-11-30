@@ -4,7 +4,8 @@ SEES RulerOfTheSeas_Context
 
 VARIABLES
     players_r, player_coins_r, player_islands_r,
-    available_islands_r, turn_completed_r
+    available_islands_r, turn_completed_r, game_state_r,
+    island_happiness_r
 
 INVARIANT
     players_r : PLAYER --> BOOL &
@@ -19,10 +20,16 @@ INVARIANT
         player_islands(pp) = {ii | ii : ISLAND & player_islands_r(pp, ii) = TRUE}) &
     !ii.(ii : ISLAND =>
         card({pp | pp : players & player_islands_r(pp, ii) = TRUE}) <= 1) &
+    
+    island_happiness_r : ISLAND --> (0..MAX_HAPPINESS) &
+    island_happiness = island_happiness_r &
 
     available_islands_r : ISLAND --> BOOL &
     available_islands = dom(available_islands_r |> {TRUE}) &
     card({ii | ii : ISLAND & available_islands_r(ii) = TRUE}) <= MAX_ISLANDS &
+    
+    game_state_r : GAME_STATE &
+    game_state = game_state_r &
     
     turn_completed_r : PLAYER --> BOOL &
     turn_completed = {pp | pp : PLAYER & players_r(pp) = TRUE & turn_completed_r(pp) = TRUE}
@@ -32,14 +39,90 @@ INITIALISATION
     player_coins_r := PLAYER * {0};
     available_islands_r := ISLAND * {TRUE};
     turn_completed_r := PLAYER * {FALSE};
-    player_islands_r := PLAYER * ISLAND * {FALSE}
+    player_islands_r := PLAYER * ISLAND * {FALSE};
+    game_state_r := CONFIGURING
 
 OPERATIONS
-    AddPlayer(pp) = skip;
-    StartGame = skip;
-    AcquireIsland(pp) = skip;
-    InvestOnResources(pp) = skip;
-    InvestOnHappiness(pp) = skip;
+    AddPlayer(pp) = 
+        PRE
+            pp : PLAYER &
+            card({pp | pp : PLAYER & players_r(pp) = TRUE}) < MAX_PLAYERS &
+            players_r(pp) = FALSE &
+            game_state_r = CONFIGURING
+        THEN
+            players_r(pp) := TRUE;
+            player_coins_r(pp) := 2;
+            VAR ii IN
+                ii := min({jj | jj : ISLAND & available_islands_r(jj) = TRUE});
+                player_islands_r(pp, ii) := TRUE;
+                available_islands_r(ii) := FALSE
+            END
+        END;
+        
+    StartGame =
+        PRE
+            card({pp | pp : PLAYER & players_r(pp) = TRUE}) >= MIN_PLAYERS &
+            card({pp | pp : PLAYER & players_r(pp) = TRUE}) <= MAX_PLAYERS &
+            game_state_r = CONFIGURING
+        THEN
+            game_state_r := PLAYING
+        END;
+    
+    AcquireIsland(pp) =
+        PRE
+            pp : PLAYER &
+            players_r(pp) = TRUE &
+            turn_completed_r(pp) = FALSE &
+            card({ii | ii : ISLAND & available_islands_r(ii) = TRUE}) > 0 &
+            player_coins_r(pp) >= 3 &
+            game_state_r = PLAYING
+        THEN
+            player_coins_r(pp) := player_coins_r(pp) - 3;
+            VAR ii IN
+                ii := min({jj | jj : ISLAND & available_islands_r(jj) = TRUE});
+                player_islands_r(pp, ii) := TRUE;
+                available_islands_r(ii) := FALSE;
+                island_happiness_r(ii) := ISLAND_HAPPINESS_ACQUIRED
+            END;
+            turn_completed_r(pp) := TRUE
+        END;
+    
+    InvestOnResources(pp) =
+    PRE
+        pp : PLAYER &
+        players_r(pp) = TRUE &
+        turn_completed_r(pp) = FALSE &
+        game_state_r = PLAYING
+    THEN
+        VAR ih, lost_islands IN
+            ih := island_happiness_r <+ %ii.(ii : ISLAND & player_islands_r(pp, ii) = TRUE |
+                max({0, island_happiness_r(ii) - HAPPINESS_FEE}));
+            lost_islands := {ii | ii : ISLAND & player_islands_r(pp, ii) = TRUE & ih(ii) <= 0};
+            player_coins_r(pp) := player_coins_r(pp) + card({ii | ii : ISLAND & player_islands_r(pp, ii) = TRUE});
+            island_happiness_r := ih;
+            available_islands_r := available_islands_r <+ %ii.(ii : lost_islands | TRUE);
+            player_islands_r := player_islands_r <+ %ii.(ii : lost_islands | FALSE);
+            turn_completed_r(pp) := TRUE
+        END
+    END;
+
+    InvestOnHappiness(pp) =
+        PRE
+            pp : PLAYER &
+            players_r(pp) = TRUE &
+            turn_completed_r(pp) = FALSE &
+            player_coins_r(pp) >= card({ii | ii : ISLAND & player_islands_r(pp, ii) = TRUE}) &
+            game_state_r = PLAYING
+        THEN
+            VAR ih IN
+                ih := island_happiness_r <+ %ii.(ii : ISLAND & player_islands_r(pp, ii) = TRUE |
+                    min({100, island_happiness_r(ii) + HAPPINESS_FEE}));
+                player_coins_r(pp) := player_coins_r(pp) - card({ii | ii : ISLAND & player_islands_r(pp, ii) = TRUE});
+                island_happiness_r := ih;
+                turn_completed_r(pp) := TRUE
+            END
+        END;
+
     AttackPlayer(attacker, victim, dice_attacker, dice_victim) = skip;
     NextTurn = skip;
     StartNewGame = skip
