@@ -1,0 +1,56 @@
+REFINEMENT RulerOfTheSeas_r
+REFINES RulerOfTheSeas
+SEES RulerOfTheSeas_Context
+
+VARIABLES
+    players_r, player_coins_r, player_islands_r,
+    available_islands_r, turn_completed_r
+
+INVARIANT
+    players_r : PLAYER --> BOOL &
+    players = dom(players_r |> {TRUE}) &
+    card({ pp | pp : PLAYER & players_r(pp) = TRUE }) <= MAX_PLAYERS &
+    
+    player_coins_r : PLAYER --> NAT &
+    player_coins = ({pp | pp : PLAYER & players_r(pp) = TRUE} <<| player_coins_r) &
+    
+    player_islands_r : PLAYER * ISLAND --> BOOL &
+    !pp.(pp : players =>
+        player_islands(pp) = {ii | ii : ISLAND & player_islands_r(pp, ii) = TRUE}) &
+    !ii.(ii : ISLAND =>
+        card({pp | pp : players & player_islands_r(pp, ii) = TRUE}) <= 1) &
+
+    available_islands_r : ISLAND --> BOOL &
+    available_islands = dom(available_islands_r |> {TRUE}) &
+    card({ii | ii : ISLAND & available_islands_r(ii) = TRUE}) <= MAX_ISLANDS &
+    
+    turn_completed_r : PLAYER --> BOOL &
+    turn_completed = {pp | pp : PLAYER & players_r(pp) = TRUE & turn_completed_r(pp) = TRUE}
+
+INITIALISATION
+    players_r := PLAYER * {FALSE};
+    player_coins_r := PLAYER * {0};
+    available_islands_r := ISLAND * {TRUE};
+    turn_completed_r := PLAYER * {FALSE};
+    player_islands_r := PLAYER * ISLAND * {FALSE}
+
+OPERATIONS
+    AddPlayer(pp) = skip;
+    StartGame = skip;
+    AcquireIsland(pp) = skip;
+    InvestOnResources(pp) = skip;
+    InvestOnHappiness(pp) = skip;
+    AttackPlayer(attacker, victim, dice_attacker, dice_victim) = skip;
+    NextTurn = skip;
+    StartNewGame = skip
+   
+    /*query_players <-- GetPlayers = skip;
+    query_player_coins <-- GetPlayerCoins(pp) = skip;
+    GetPlayerIslands(pp) = skip;
+    GetIslandHappiness(ii) = skip;
+    GetAvailableIslands = skip;
+    GetGameState = skip;
+    GetTurnCompleted = skip;
+    GetWinner = skip;
+    GetPlayerIslandsHappiness(pp) = skip*/
+END

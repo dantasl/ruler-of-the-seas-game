@@ -181,9 +181,10 @@ OPERATIONS
             turn_completed := {} ||
             winner := {} ||
             game_state := CONFIGURING
-        END;
+        END
     
-    query_players <-- GetPlayers =
+    // Retorno não pode ser um conjunto (nenhum tipo abstrato)
+    /*query_players <-- GetPlayers =
         BEGIN
             query_players := players
         END;
@@ -195,6 +196,7 @@ OPERATIONS
             query_player_coins := player_coins(pp)
         END;
     
+    // Retorno não pode ser um conjunto (nenhum tipo abstrato)
     query_player_islands <-- GetPlayerIslands(pp) =
         PRE
             pp : players
@@ -209,6 +211,7 @@ OPERATIONS
             query_island_happiness := island_happiness(ii)
         END;
     
+    // Retorno não pode ser um conjunto (nenhum tipo abstrato)
     query_available_islands <-- GetAvailableIslands = 
         BEGIN
             query_available_islands := available_islands
@@ -219,6 +222,7 @@ OPERATIONS
             query_game_state := game_state
         END;
     
+    // Retorno não pode ser um conjunto (nenhum tipo abstrato)
     query_turn_completed <-- GetTurnCompleted =
         BEGIN
             query_turn_completed := turn_completed
@@ -234,5 +238,5 @@ OPERATIONS
             pp : players
         THEN
             query_player_islands_happiness := SIGMA(ii).(ii : player_islands(pp) | island_happiness(ii))
-        END
+        END*/
 END
