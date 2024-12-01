@@ -5,7 +5,7 @@ SEES RulerOfTheSeas_Context
 VARIABLES
     players_r, player_coins_r, player_islands_r,
     available_islands_r, turn_completed_r, game_state_r,
-    island_happiness_r
+    island_happiness_r, winner_r
 
 INVARIANT
     players_r : PLAYER --> BOOL &
@@ -32,7 +32,16 @@ INVARIANT
     game_state = game_state_r &
     
     turn_completed_r : PLAYER --> BOOL &
-    turn_completed = {pp | pp : PLAYER & players_r(pp) = TRUE & turn_completed_r(pp) = TRUE}
+    turn_completed = {pp | pp : PLAYER & players_r(pp) = TRUE & turn_completed_r(pp) = TRUE} &
+
+    winner_r : PLAYER --> BOOL &
+    winner = dom(winner_r |> {TRUE}) &
+    card(dom(winner_r |> {TRUE})) <= 1 &
+    (winner = {} => !pp.(pp : PLAYER => winner_r(pp) = FALSE)) &
+    !pp.(pp : PLAYER => winner_r(pp) = TRUE => players_r(pp) = TRUE) &
+    
+    (game_state_r = FINISHED => card(dom(winner_r |> {TRUE})) = 1) &
+    (game_state_r /= FINISHED => dom(winner_r |> {TRUE}) = {})
 
 INITIALISATION
     players_r := PLAYER * {FALSE};
@@ -40,7 +49,8 @@ INITIALISATION
     available_islands_r := ISLAND * {TRUE};
     turn_completed_r := PLAYER * {FALSE};
     player_islands_r := PLAYER * ISLAND * {FALSE};
-    game_state_r := CONFIGURING
+    game_state_r := CONFIGURING;
+    winner_r := PLAYER * {FALSE}
 
 OPERATIONS
     AddPlayer(pp) = 

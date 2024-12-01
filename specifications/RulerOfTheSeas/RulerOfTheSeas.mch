@@ -14,7 +14,7 @@ INVARIANT
     island_happiness : ISLAND --> (0..MAX_HAPPINESS) &
     turn_completed <: players &
     game_state : GAME_STATE &
-    winner <: PLAYER &
+    winner <: players &
     card(winner) <= 1 &
     (game_state = FINISHED => (card(players) = 1 & winner = players)) &
     (game_state /= FINISHED => winner = {}) &
