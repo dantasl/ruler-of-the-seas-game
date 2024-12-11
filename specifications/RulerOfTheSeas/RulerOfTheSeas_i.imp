@@ -1,0 +1,119 @@
+IMPLEMENTATION RulerOfTheSeas_i
+
+REFINES RulerOfTheSeas
+ 
+
+CONCRETE_VARIABLES
+    players_i, player_coins_i, player_islands_i,
+    available_islands_i, turn_completed_i, game_state_i,
+    island_happiness_i, winner_i, player_count
+
+INVARIANT
+    players_i : PLAYER --> BOOL &
+    players = dom(players_i |> {TRUE}) &
+    
+    player_count : NAT &
+    player_count <= MAX_PLAYERS &
+    
+    player_coins_i : PLAYER --> NAT &
+    
+    player_islands_i : PLAYER * ISLAND --> BOOL &
+    
+    island_happiness_i : ISLAND --> (0..MAX_HAPPINESS) &
+    island_happiness = island_happiness_i &
+
+    available_islands_i : ISLAND --> BOOL &
+    available_islands = dom(available_islands_i |> {TRUE}) &
+    
+    game_state_i : GAME_STATE &
+    game_state = game_state_i &
+    
+    turn_completed_i : PLAYER --> BOOL &
+    turn_completed = dom(turn_completed_i |> {TRUE}) &
+
+    winner_i : PLAYER --> BOOL &
+    winner = dom(winner_i |> {TRUE})
+
+VALUES
+    PLAYER = 0..3;
+    ISLAND = 0..11;
+    MAX_ISLANDS = 12;
+    MAX_PLAYERS = 4; 
+    MIN_PLAYERS = 2;
+    MAX_HAPPINESS = 100;
+    HAPPINESS_FEE = 20;
+    ISLAND_HAPPINESS_ACQUIRED = 50;
+    ATTACK_SUCCESS_HAPPINESS = 80;
+    ATTACK_FAIL_HAPPINESS = 20
+
+INITIALISATION
+    players_i := PLAYER * {FALSE};
+    player_count := 0;
+    island_happiness_i := ISLAND * {MAX_HAPPINESS};
+    player_coins_i := PLAYER * {0};
+    available_islands_i := ISLAND * {TRUE};
+    turn_completed_i := PLAYER * {FALSE};
+    player_islands_i := PLAYER * ISLAND * {FALSE};
+    game_state_i := CONFIGURING;
+    winner_i := PLAYER * {FALSE}
+
+OPERATIONS
+    AddPlayer(pp) =
+        BEGIN
+            VAR is_player_in IN
+                is_player_in := players_i(pp);
+                IF player_count < MAX_PLAYERS & is_player_in = FALSE & game_state_i = CONFIGURING
+                THEN
+                    players_i(pp) := TRUE;
+                    player_coins_i(pp) := 2;
+                    player_count := player_count + 1;
+                    VAR ii_index, found IN
+                        ii_index := 0;
+                        found := FALSE;
+                        WHILE ii_index <= MAX_ISLANDS & found = FALSE DO
+                            VAR is_available_island IN
+                                is_available_island := available_islands_i(ii_index);
+                                IF is_available_island = TRUE THEN
+                                    player_islands_i(pp, ii_index) := TRUE;
+                                    available_islands_i(ii_index) := FALSE;
+                                    found := TRUE
+                                ELSE
+                                    ii_index := ii_index + 1
+                                END
+                             END
+                        INVARIANT
+                            ii_index : 0..MAX_ISLANDS  &
+                            available_islands_i(ii_index) = TRUE &
+                            found = FALSE => player_islands_i(pp, ii_index) = FALSE
+                        VARIANT
+                            MAX_ISLANDS - ii_index + 1
+                        END
+                    END 
+                END
+             END
+        END;
+        
+    StartGame = skip;
+    
+    AcquireIsland(pp) = skip;
+    
+    InvestOnResources(pp) = skip;
+
+    InvestOnHappiness(pp) = skip;
+
+    AttackPlayer(attacker, victim, dice_attacker, dice_victim) = skip;
+    
+    NextTurn = skip;
+
+    StartNewGame = skip
+   
+    /*query_players <-- GetPlayers = skip;
+    query_player_coins <-- GetPlayerCoins(pp) = skip;
+    GetPlayerIslands(pp) = skip;
+    GetIslandHappiness(ii) = skip;
+    GetAvailableIslands = skip;
+    GetGameState = skip;
+    GetTurnCompleted = skip;
+    GetWinner = skip;
+    GetPlayerIslandsHappiness(pp) = skip*/
+END

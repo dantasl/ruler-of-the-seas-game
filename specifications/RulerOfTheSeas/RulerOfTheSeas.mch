@@ -1,5 +1,41 @@
 MACHINE RulerOfTheSeas
-SEES RulerOfTheSeas_Context
+    
+SETS
+    PLAYER; ISLAND; GAME_STATE = {CONFIGURING, PLAYING, FINISHED}
+
+CONSTANTS
+    MAX_PLAYERS,
+    MIN_PLAYERS,
+    MAX_HAPPINESS,
+    HAPPINESS_FEE,
+    MAX_ISLANDS,
+    ISLAND_HAPPINESS_ACQUIRED,
+    ATTACK_SUCCESS_HAPPINESS,
+    ATTACK_FAIL_HAPPINESS
+
+PROPERTIES
+    PLAYER:FIN(PLAYER) &
+    ISLAND:FIN(ISLAND) &
+    MAX_PLAYERS : NAT1 &
+    MIN_PLAYERS : NAT1 &
+    MAX_HAPPINESS : NAT1 &
+    HAPPINESS_FEE : NAT1 &
+    ISLAND_HAPPINESS_ACQUIRED : NAT1 &
+    ATTACK_SUCCESS_HAPPINESS : NAT1 &
+    ATTACK_FAIL_HAPPINESS : NAT1 &
+    MIN_PLAYERS <= MAX_PLAYERS &
+    MAX_HAPPINESS > 0 &
+    MAX_ISLANDS = 12 &
+    card(ISLAND) = MAX_ISLANDS &
+    MAX_PLAYERS = 4 & 
+    MIN_PLAYERS = 2 &
+    card(PLAYER) >= MIN_PLAYERS &
+    card(GAME_STATE) = 3 &
+    MAX_HAPPINESS = 100 &
+    HAPPINESS_FEE = 20 &
+    ISLAND_HAPPINESS_ACQUIRED = 50 &
+    ATTACK_SUCCESS_HAPPINESS = 80 &
+    ATTACK_FAIL_HAPPINESS = 20
 
 VARIABLES
     players, player_coins, player_islands, available_islands,
@@ -7,24 +43,28 @@ VARIABLES
 
 INVARIANT
     players <: PLAYER &
+    players:FIN(players) &
     card(players) <= MAX_PLAYERS &
+    
     player_coins : players --> NAT &
+    
     player_islands : players --> POW(ISLAND) &
+    
     available_islands <: ISLAND &
+    available_islands:FIN(available_islands) &
+    
     island_happiness : ISLAND --> (0..MAX_HAPPINESS) &
+    
     turn_completed <: players &
     game_state : GAME_STATE &
     winner <: players &
     card(winner) <= 1 &
     (game_state = FINISHED => (card(players) = 1 & winner = players)) &
     (game_state /= FINISHED => winner = {}) &
-    // No player has the same island as another player
+    
     !(p1, p2) . (p1 : players & p2 : players & p1 /= p2 => player_islands(p1) /\ player_islands(p2) = {}) & 
-    // No player has an island that is available
     UNION pp.(pp : dom(player_islands) | player_islands(pp)) /\ available_islands = {} &
-    // Union of all player islands and available islands is equal to all islands
     UNION pp.(pp : dom(player_islands) | player_islands(pp)) \/ available_islands = ISLAND &
-    // All islands have a happiness value between 0 and MAX_HAPPINESS 
     ran(island_happiness) <: 0..MAX_HAPPINESS
 
 INITIALISATION
@@ -63,7 +103,7 @@ OPERATIONS
     
     AcquireIsland(pp) =
         PRE
-            pp : players &
+            pp : PLAYER &
             pp /: turn_completed &
             card(available_islands) > 0 &
             player_coins(pp) >= 3 &
@@ -80,7 +120,7 @@ OPERATIONS
     
     InvestOnResources(pp) =
         PRE
-            pp : players &
+            pp : PLAYER &
             pp /: turn_completed &
             game_state = PLAYING
         THEN
@@ -97,7 +137,7 @@ OPERATIONS
 
     InvestOnHappiness(pp) =
         PRE
-            pp : players &
+            pp : PLAYER &
             pp /: turn_completed &
             player_coins(pp) >= card(player_islands(pp)) &
             game_state = PLAYING
@@ -113,9 +153,9 @@ OPERATIONS
     
     AttackPlayer(attacker, victim, dice_attacker, dice_victim) =
         PRE
-            attacker : players &
+            attacker : PLAYER &
             attacker /: turn_completed &
-            victim : players &
+            victim : PLAYER &
             attacker /= victim &
             dice_attacker : 1..6 &
             dice_victim : 1..6 &
@@ -158,12 +198,12 @@ OPERATIONS
         THEN
             turn_completed := {} ||
             player_coins := player_coins <+ %pp.(pp : players | player_coins(pp) + 1) ||
-            ANY pp
-            WHERE pp = { pp | pp : players & card(player_islands(pp)) > 0}
+            ANY ppp
+            WHERE ppp = { pp | pp : players & card(player_islands(pp)) > 0}
             THEN
-                players := pp ||
-                IF card(pp) = 1 THEN
-                    winner := pp ||
+                players := ppp ||
+                IF card(ppp) = 1 THEN
+                    winner := ppp ||
                     game_state := FINISHED
                 END
             END
