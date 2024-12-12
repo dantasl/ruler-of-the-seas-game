@@ -6,7 +6,7 @@ CONCRETE_VARIABLES
     players_i, player_coins_i, player_islands_i,
     available_islands_i, turn_completed_i, game_state_i,
     island_happiness_i, winner_i, player_count,
-    available_islands_count
+    available_islands_count, turn_completed_count
 
 INVARIANT
     players_i : PLAYER --> BOOL &
@@ -33,6 +33,8 @@ INVARIANT
     
     turn_completed_i : PLAYER --> BOOL &
     turn_completed = dom(turn_completed_i |> {TRUE}) &
+    turn_completed_count : NAT &
+    turn_completed_count <= player_count &
 
     winner_i : PLAYER --> BOOL &
     winner = dom(winner_i |> {TRUE})
@@ -52,6 +54,7 @@ VALUES
 INITIALISATION
     players_i := PLAYER * {FALSE};
     player_count := 0;
+    turn_completed_count := 0;
     island_happiness_i := ISLAND * {MAX_HAPPINESS};
     player_coins_i := PLAYER * {0};
     available_islands_i := ISLAND * {TRUE};
@@ -127,7 +130,7 @@ OPERATIONS
                                 ELSE
                                     ii_index := ii_index + 1
                                 END
-                             END
+                            END
                         INVARIANT
                             ii_index : 0..MAX_ISLANDS  &
                             available_islands_i(ii_index) = TRUE &
@@ -136,18 +139,93 @@ OPERATIONS
                             MAX_ISLANDS - ii_index + 1
                         END
                     END;
-                    turn_completed_i(pp) := TRUE
+                    turn_completed_i(pp) := TRUE;
+                    turn_completed_count := turn_completed_count + 1
                 END
             END
         END;
     
-    InvestOnResources(pp) = skip;
+    InvestOnResources(pp) =
+        BEGIN
+            VAR player_turn_not_completed IN
+                player_turn_not_completed := turn_completed_i(pp);
+                IF player_turn_not_completed = FALSE & game_state_i = PLAYING
+                THEN
+                    VAR ii IN
+                        ii := 0;
+                        WHILE ii < MAX_ISLANDS DO
+                            VAR is_player_island IN
+                                is_player_island := player_islands_i(pp, ii);
+                                IF is_player_island = TRUE
+                                THEN
+                                    player_coins_i(pp) := player_coins_i(pp) + 1;
+                                    VAR island_happiness_value, happiness_minus_fee IN
+                                        island_happiness_value := island_happiness_i(ii);
+                                        happiness_minus_fee := island_happiness_value - HAPPINESS_FEE;
+                                        IF happiness_minus_fee <= 0
+                                        THEN
+                                            player_islands_i(pp, ii) := FALSE;
+                                            available_islands_i(ii) := TRUE
+                                        ELSE
+                                            island_happiness_i(ii) := happiness_minus_fee
+                                        END
+                                    END
+                                END
+                            END
+                        INVARIANT
+                            ii : NAT & ii <= MAX_ISLANDS &
+                            pp : PLAYER & ii : 1..MAX_ISLANDS &
+                            { pi | pi : 1..MAX_ISLANDS & player_islands_i(pp, pi) = TRUE } = player_islands(pp)
+                        VARIANT
+                            MAX_ISLANDS - ii + 1
+                        END
+                    END;
+                    turn_completed_i(pp) := TRUE
+                END
+            END
+        END;
 
     InvestOnHappiness(pp) = skip;
 
     AttackPlayer(attacker, victim, dice_attacker, dice_victim) = skip;
     
     NextTurn = skip;
+        /*BEGIN
+            IF game_state_i = PLAYING & player_count = turn_completed_count
+            THEN
+                VAR pp IN
+                    pp := 0;
+                    turn_completed_count := 0;
+                    IF player_count = 1
+                    THEN
+                        VAR winner_found IN
+                            winner_found := FALSE;
+                            WHILE pp < MAX_PLAYERS & winner_found = FALSE DO
+                                VAR player_is_winner IN
+                                    player_is_winner := player_islands_i(pp);
+                                    IF player_is_winner = TRUE THEN
+                                        winner_i(pp) := TRUE;
+                                        winner_found := TRUE
+                                    ELSE
+                                        pp := pp + 1
+                                    END
+                                END
+                            INVARIANT
+                                pp : 0..MAX_PLAYERS &
+                                winner_found = FALSE => winner_i(pp) = FALSE
+                            VARIANT
+                                MAX_PLAYERS - pp + 1
+                            END
+                        END
+                    ELSE
+                    WHILE pp < MAX_PLAYERS DO
+                        turn_completed_i(pp) := FALSE;
+                        player_coins_i(pp) := player_coins_i(pp) + 1;
+                        pp := pp + 1
+                    END
+                END
+            END 
+        END;*/
 
     StartNewGame = skip
    
