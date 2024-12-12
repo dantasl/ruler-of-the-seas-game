@@ -1,12 +1,12 @@
 IMPLEMENTATION RulerOfTheSeas_i
 
 REFINES RulerOfTheSeas
- 
 
 CONCRETE_VARIABLES
     players_i, player_coins_i, player_islands_i,
     available_islands_i, turn_completed_i, game_state_i,
-    island_happiness_i, winner_i, player_count
+    island_happiness_i, winner_i, player_count,
+    available_islands_count
 
 INVARIANT
     players_i : PLAYER --> BOOL &
@@ -16,6 +16,7 @@ INVARIANT
     player_count <= MAX_PLAYERS &
     
     player_coins_i : PLAYER --> NAT &
+    player_coins = players <| player_coins_i & 
     
     player_islands_i : PLAYER * ISLAND --> BOOL &
     
@@ -24,6 +25,8 @@ INVARIANT
 
     available_islands_i : ISLAND --> BOOL &
     available_islands = dom(available_islands_i |> {TRUE}) &
+    available_islands_count : NAT &
+    available_islands_count <= MAX_ISLANDS &
     
     game_state_i : GAME_STATE &
     game_state = game_state_i &
@@ -52,6 +55,7 @@ INITIALISATION
     island_happiness_i := ISLAND * {MAX_HAPPINESS};
     player_coins_i := PLAYER * {0};
     available_islands_i := ISLAND * {TRUE};
+    available_islands_count := MAX_ISLANDS;
     turn_completed_i := PLAYER * {FALSE};
     player_islands_i := PLAYER * ISLAND * {FALSE};
     game_state_i := CONFIGURING;
@@ -93,9 +97,49 @@ OPERATIONS
              END
         END;
         
-    StartGame = skip;
+    StartGame = 
+        BEGIN
+            IF player_count >= MIN_PLAYERS & player_count <= MAX_PLAYERS & game_state_i = CONFIGURING
+            THEN
+                game_state_i := PLAYING
+            END   
+        END;
     
-    AcquireIsland(pp) = skip;
+    AcquireIsland(pp) =
+        BEGIN
+            VAR player_turn_not_completed, player_current_coins IN
+                player_turn_not_completed := turn_completed_i(pp);
+                player_current_coins := player_coins_i(pp);
+                IF player_turn_not_completed = FALSE & available_islands_count > 0 & player_current_coins >= 3 & game_state_i = PLAYING
+                THEN
+                    player_coins_i(pp) := player_coins_i(pp) - 3;
+                    VAR ii_index, found IN
+                        ii_index := 0;
+                        found := FALSE;
+                        WHILE ii_index <= MAX_ISLANDS & found = FALSE DO
+                            VAR is_available_island IN
+                                is_available_island := available_islands_i(ii_index);
+                                IF is_available_island = TRUE THEN
+                                    player_islands_i(pp, ii_index) := TRUE;
+                                    available_islands_i(ii_index) := FALSE;
+                                    island_happiness_i(ii_index) := ISLAND_HAPPINESS_ACQUIRED;
+                                    found := TRUE
+                                ELSE
+                                    ii_index := ii_index + 1
+                                END
+                             END
+                        INVARIANT
+                            ii_index : 0..MAX_ISLANDS  &
+                            available_islands_i(ii_index) = TRUE &
+                            found = FALSE => player_islands_i(pp, ii_index) = FALSE
+                        VARIANT
+                            MAX_ISLANDS - ii_index + 1
+                        END
+                    END;
+                    turn_completed_i(pp) := TRUE
+                END
+            END
+        END;
     
     InvestOnResources(pp) = skip;
 
