@@ -186,46 +186,64 @@ OPERATIONS
             END
         END;
 
-    InvestOnHappiness(pp) = skip; // tem que definir uma operação auxiliar para retornar a quantidade de ilhas que o jogador tem
-        /*BEGIN
-            VAR player_turn_not_completed IN
+    InvestOnHappiness(pp) =
+        BEGIN
+            VAR player_turn_not_completed, pi_counter, p_coins, ii IN
                 player_turn_not_completed := turn_completed_i(pp);
-                IF player_turn_not_completed = FALSE & game_state_i = PLAYING
+                p_coins := player_coins_i(pp);
+                ii := 0;
+                pi_counter := 0;
+                
+                WHILE ii < MAX_ISLANDS DO
+                    VAR is_player_island IN
+                        is_player_island := player_islands_i(pp, ii);
+                        IF is_player_island = TRUE
+                        THEN
+                            pi_counter := pi_counter + 1
+                        END
+                    END
+                INVARIANT
+                    0 <= ii & ii <= MAX_ISLANDS &
+                    pi_counter >= 0
+                VARIANT
+                    MAX_ISLANDS - ii
+                END;
+
+                IF player_turn_not_completed = FALSE & game_state_i = PLAYING & p_coins >= pi_counter
                 THEN
-                    VAR ii IN
-                        ii := 0;
-                        WHILE ii < MAX_ISLANDS DO
+                    VAR iii IN
+                        iii := 0;
+                        WHILE iii < MAX_ISLANDS DO
                             VAR is_player_island IN
-                                is_player_island := player_islands_i(pp, ii);
+                                is_player_island := player_islands_i(pp, iii);
                                 IF is_player_island = TRUE
                                 THEN
                                     player_coins_i(pp) := player_coins_i(pp) + 1;
-                                    VAR island_happiness_value, happiness_minus_fee IN
-                                        island_happiness_value := island_happiness_i(ii);
-                                        happiness_minus_fee := island_happiness_value - HAPPINESS_FEE;
-                                        IF happiness_minus_fee <= 0
+                                    VAR island_happiness_value, happiness_plus_fee IN
+                                        island_happiness_value := island_happiness_i(iii);
+                                        happiness_plus_fee := island_happiness_value + HAPPINESS_FEE;
+                                        IF happiness_plus_fee > 100
                                         THEN
-                                            player_islands_i(pp, ii) := FALSE;
-                                            available_islands_i(ii) := TRUE
+                                            island_happiness_i(iii) := MAX_HAPPINESS
                                         ELSE
-                                            island_happiness_i(ii) := happiness_minus_fee
+                                            island_happiness_i(iii) := happiness_plus_fee
                                         END
                                     END
                                 END
                             END
                         INVARIANT
-                            ii : NAT & ii <= MAX_ISLANDS &
-                            pp : PLAYER & ii : 1..MAX_ISLANDS &
+                            iii : NAT & iii <= MAX_ISLANDS &
+                            pp : PLAYER & iii : 1..MAX_ISLANDS &
                             { pi | pi : 1..MAX_ISLANDS & player_islands_i(pp, pi) = TRUE } = player_islands(pp)
                         VARIANT
-                            MAX_ISLANDS - ii + 1
+                            MAX_ISLANDS - iii + 1
                         END
                     END;
                     turn_completed_i(pp) := TRUE;
                     turn_completed_count := turn_completed_count + 1
                 END
             END
-        END;*/
+        END;
 
     AttackPlayer(attacker, victim, dice_attacker, dice_victim) = skip;
     
@@ -301,38 +319,5 @@ OPERATIONS
                 game_state_i := CONFIGURING;
                 winner_i := PLAYER * {FALSE}
             END
-        END;
-    
-    query_player_islands_counter <-- GetPlayerIslandsCount(pp) = 
-        BEGIN
-            VAR ii, player_island_counter IN
-                ii := 0;
-                player_island_counter := 0;
-                WHILE ii < MAX_ISLANDS DO
-                    VAR is_player_island IN
-                        is_player_island := player_islands_i(pp, ii);
-                        IF is_player_island = TRUE
-                        THEN
-                            player_island_counter := player_island_counter + 1
-                        END
-                    END
-                INVARIANT
-                    0 <= ii & ii <= MAX_ISLANDS &
-                    player_island_counter >= 0
-                VARIANT
-                    MAX_ISLANDS - ii
-                END;
-                query_player_islands_counter := player_island_counter
-            END
         END
-   
-    /*query_players <-- GetPlayers = skip;
-    query_player_coins <-- GetPlayerCoins(pp) = skip;
-    GetPlayerIslands(pp) = skip;
-    GetIslandHappiness(ii) = skip;
-    GetAvailableIslands = skip;
-    GetGameState = skip;
-    GetTurnCompleted = skip;
-    GetWinner = skip;
-    GetPlayerIslandsHappiness(pp) = skip*/
 END
