@@ -19,6 +19,7 @@ INVARIANT
     player_coins = players <| player_coins_i & 
     
     player_islands_i : PLAYER * ISLAND --> BOOL &
+    player_islands = %pp.(pp:players | { ii | ii:ISLAND & player_islands_i(pp,ii)=TRUE }) &
 
     island_happiness_i : ISLAND --> (0..MAX_HAPPINESS) &
     island_happiness = island_happiness_i &
