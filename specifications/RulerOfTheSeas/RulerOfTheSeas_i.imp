@@ -245,7 +245,77 @@ OPERATIONS
             END
         END;
 
-    AttackPlayer(attacker, victim, dice_attacker, dice_victim) = skip;
+    AttackPlayer(attacker, victim, dice_attacker, dice_victim) =
+        BEGIN
+            VAR attacker_happiness, victim_happiness, attacker_coins, attacker_islands_count, victim_islands_count, last_found_island_attacker, last_found_island_victim IN
+                attacker_happiness := 0;
+                victim_happiness := 0;
+                attacker_coins := player_coins_i(attacker);
+                attacker_islands_count := 0;
+                victim_islands_count := 0;
+                last_found_island_attacker := -1;
+                last_found_island_victim := -1;
+                IF attacker /= victim & attacker_coins >= 4 & game_state_i = PLAYING THEN
+                    player_coins_i(attacker) := attacker_coins - 4;
+                    VAR island_index IN
+                        island_index := 0;
+                        WHILE island_index < MAX_ISLANDS DO
+                            VAR is_attacker_island, is_victim_island IN
+                                is_attacker_island := player_islands_i(attacker, island_index);
+                                is_victim_island := player_islands_i(victim, island_index);
+                                IF is_attacker_island = TRUE THEN
+                                    attacker_happiness := attacker_happiness + island_happiness_i(island_index);
+                                    attacker_islands_count := attacker_islands_count + 1;
+                                    last_found_island_attacker := island_index
+                                ELSIF is_victim_island = TRUE THEN
+                                    victim_happiness := victim_happiness + island_happiness_i(island_index);
+                                    victim_islands_count := victim_islands_count + 1;
+                                    last_found_island_victim := island_index
+                                END;
+                                island_index := island_index + 1
+                            END
+                            INVARIANT
+                                0 <= island_index & island_index <= MAX_ISLANDS &
+                                (attacker_islands_count > 0 => 0 <= last_found_island_attacker & last_found_island_attacker < MAX_ISLANDS) &
+                                (victim_islands_count > 0 => 0 <= last_found_island_victim & last_found_island_victim < MAX_ISLANDS) &
+                                attacker_happiness >= 0 &
+                                victim_happiness >= 0
+                            VARIANT
+                                MAX_ISLANDS - island_index
+                        END;
+                        IF attacker_islands_count > victim_islands_count THEN
+                            IF attacker_happiness <= victim_happiness THEN
+                                IF last_found_island_victim /= -1 THEN
+                                    island_happiness_i(last_found_island_victim) := ATTACK_FAIL_HAPPINESS
+                                END
+                            ELSE
+                                IF last_found_island_attacker /= -1 THEN
+                                    island_happiness_i(last_found_island_attacker) := ATTACK_SUCCESS_HAPPINESS
+                                END
+                            END;
+                            IF last_found_island_victim /= -1 THEN
+                                player_islands_i(victim, last_found_island_victim) := FALSE;
+                                player_islands_i(attacker, last_found_island_victim) := TRUE
+                            END
+                        ELSE
+                            IF dice_attacker > dice_victim THEN
+                                IF last_found_island_victim /= -1 THEN
+                                    island_happiness_i(last_found_island_victim) := ISLAND_HAPPINESS_ACQUIRED;
+                                    player_islands_i(attacker, last_found_island_victim) := TRUE;
+                                    player_islands_i(victim, last_found_island_victim) := FALSE
+                                END
+                            ELSE
+                                IF last_found_island_attacker /= -1 THEN
+                                    island_happiness_i(last_found_island_attacker) := ISLAND_HAPPINESS_ACQUIRED;
+                                    player_islands_i(attacker, last_found_island_attacker) := FALSE;
+                                    player_islands_i(victim, last_found_island_attacker) := TRUE
+                                END
+                            END
+                        END
+                    END
+                END
+            END
+        END;
     
     NextTurn =
         BEGIN
