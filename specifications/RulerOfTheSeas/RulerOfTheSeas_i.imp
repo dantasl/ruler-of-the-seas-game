@@ -171,14 +171,15 @@ OPERATIONS
                                             island_happiness_i(ii) := happiness_minus_fee
                                         END
                                     END
-                                END
+                                END;
+                                ii := ii + 1
                             END
                         INVARIANT
                             ii : NAT & ii <= MAX_ISLANDS &
                             pp : PLAYER & ii : 1..MAX_ISLANDS &
                             { pi | pi : 1..MAX_ISLANDS & player_islands_i(pp, pi) = TRUE } = player_islands(pp)
                         VARIANT
-                            MAX_ISLANDS - ii + 1
+                            MAX_ISLANDS - ii
                         END
                     END;
                     turn_completed_i(pp) := TRUE;
@@ -194,14 +195,14 @@ OPERATIONS
                 p_coins := player_coins_i(pp);
                 ii := 0;
                 pi_counter := 0;
-                
                 WHILE ii < MAX_ISLANDS DO
                     VAR is_player_island IN
                         is_player_island := player_islands_i(pp, ii);
                         IF is_player_island = TRUE
                         THEN
                             pi_counter := pi_counter + 1
-                        END
+                        END;
+                        ii := ii + 1
                     END
                 INVARIANT
                     0 <= ii & ii <= MAX_ISLANDS &
@@ -209,7 +210,6 @@ OPERATIONS
                 VARIANT
                     MAX_ISLANDS - ii
                 END;
-
                 IF player_turn_not_completed = FALSE & game_state_i = PLAYING & p_coins >= pi_counter
                 THEN
                     VAR iii IN
@@ -230,14 +230,15 @@ OPERATIONS
                                             island_happiness_i(iii) := happiness_plus_fee
                                         END
                                     END
-                                END
+                                END;
+                                iii := iii + 1
                             END
                         INVARIANT
                             iii : NAT & iii <= MAX_ISLANDS &
                             pp : PLAYER & iii : 1..MAX_ISLANDS &
                             { pi | pi : 1..MAX_ISLANDS & player_islands_i(pp, pi) = TRUE } = player_islands(pp)
                         VARIANT
-                            MAX_ISLANDS - iii + 1
+                            MAX_ISLANDS - iii
                         END
                     END;
                     turn_completed_i(pp) := TRUE;
@@ -343,7 +344,8 @@ OPERATIONS
                                                 player_island_counter := player_island_counter + 1
                                             END
                                         END
-                                    END
+                                    END;
+                                    ii := ii + 1
                                 END
                             INVARIANT
                                 0 <= ii & ii <= MAX_ISLANDS &
