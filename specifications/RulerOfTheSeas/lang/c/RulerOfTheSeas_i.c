@@ -210,6 +210,7 @@ void RulerOfTheSeas__InvestOnResources(RulerOfTheSeas__PLAYER pp)
                                 }
                             }
                         }
+                        ii = ii+1;
                     }
                 }
             }
@@ -241,6 +242,7 @@ void RulerOfTheSeas__InvestOnHappiness(RulerOfTheSeas__PLAYER pp)
                 {
                     pi_counter = pi_counter+1;
                 }
+                ii = ii+1;
             }
         }
         if(((player_turn_not_completed == false) &&
@@ -276,6 +278,7 @@ void RulerOfTheSeas__InvestOnHappiness(RulerOfTheSeas__PLAYER pp)
                                 }
                             }
                         }
+                        iii = iii+1;
                     }
                 }
             }
@@ -423,6 +426,7 @@ void RulerOfTheSeas__NextTurn(void)
                                     }
                                 }
                             }
+                            ii = ii+1;
                         }
                     }
                     if(player_island_counter == 0)
@@ -436,6 +440,7 @@ void RulerOfTheSeas__NextTurn(void)
                         RulerOfTheSeas__winner_i[pp] = true;
                         RulerOfTheSeas__game_state_i = RulerOfTheSeas__FINISHED;
                     }
+                    pp = pp+1;
                 }
             }
         }

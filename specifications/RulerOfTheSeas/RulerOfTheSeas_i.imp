@@ -363,7 +363,8 @@ OPERATIONS
                             THEN
                                 winner_i(pp) := TRUE;
                                 game_state_i := FINISHED
-                            END
+                            END;
+                            pp := pp + 1
                         END
                     INVARIANT
                         0 <= pp & pp <= MAX_PLAYERS &
