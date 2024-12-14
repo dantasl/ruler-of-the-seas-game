@@ -221,7 +221,7 @@ OPERATIONS
             turn_completed := {} ||
             winner := {} ||
             game_state := CONFIGURING
-        END
+        END;
     
     // Retorno não pode ser um conjunto (nenhum tipo abstrato)
     /*query_players <-- GetPlayers =
@@ -234,16 +234,15 @@ OPERATIONS
             pp : players
         THEN
             query_player_coins := player_coins(pp)
-        END;
+        END;*/
     
-    // Retorno não pode ser um conjunto (nenhum tipo abstrato)
-    query_player_islands <-- GetPlayerIslands(pp) =
+    query_player_islands_counter <-- GetPlayerIslandsCount(pp) =
         PRE
-            pp : players
+            pp : PLAYER
         THEN
-            query_player_islands := player_islands(pp)
-        END;
-    
+            query_player_islands_counter := card(player_islands(pp))
+        END
+    /*
     query_island_happiness <-- GetIslandHappiness(ii) = 
         PRE
             ii : ISLAND

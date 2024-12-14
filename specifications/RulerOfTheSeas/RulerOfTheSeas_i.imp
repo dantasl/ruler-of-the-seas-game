@@ -227,7 +227,6 @@ OPERATIONS
             END
         END;*/
 
-
     AttackPlayer(attacker, victim, dice_attacker, dice_victim) = skip;
     
     NextTurn =
@@ -301,6 +300,29 @@ OPERATIONS
                 player_islands_i := PLAYER * ISLAND * {FALSE};
                 game_state_i := CONFIGURING;
                 winner_i := PLAYER * {FALSE}
+            END
+        END;
+    
+    query_player_islands_counter <-- GetPlayerIslandsCount(pp) = 
+        BEGIN
+            VAR ii, player_island_counter IN
+                ii := 0;
+                player_island_counter := 0;
+                WHILE ii < MAX_ISLANDS DO
+                    VAR is_player_island IN
+                        is_player_island := player_islands_i(pp, ii);
+                        IF is_player_island = TRUE
+                        THEN
+                            player_island_counter := player_island_counter + 1
+                        END
+                    END
+                INVARIANT
+                    0 <= ii & ii <= MAX_ISLANDS &
+                    player_island_counter >= 0
+                VARIANT
+                    MAX_ISLANDS - ii
+                END;
+                query_player_islands_counter := player_island_counter
             END
         END
    
