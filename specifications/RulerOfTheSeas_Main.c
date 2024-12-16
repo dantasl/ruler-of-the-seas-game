@@ -1,215 +1,359 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 #include "lang/c/RulerOfTheSeas.h"
 
-/* Forward declarations for helper functions */
 static void print_game_state(void);
-static void print_player_info(int player);
-static bool all_players_added(void);
-static void add_players_interactively(void);
-static void player_turn(int player);
-static void wait_for_enter(void);
+static void print_player_status(int player);
+static bool any_active_players(void);
+static int choose_active_player(void);
+static void player_action_menu(int player);
+static void print_actions_menu(void);
+static void handle_acquire_island(int player);
+static void handle_invest_resources(int player);
+static void handle_invest_happiness(int player);
+static void handle_attack_player(int player);
+static void end_turn_phase(void);
+static int roll_dice(void);
 
 int main(void)
 {
-    int choice;
-    bool exit_game = false;
+    // Initialize random seed for dice rolls
+    srand((unsigned int)time(NULL));
+    
+    RulerOfTheSeas__INITIALISATION();
 
-    while(!exit_game)
+    RulerOfTheSeas__GAME_STATE game_state;
+    RulerOfTheSeas__GetGameState(&game_state);
+
+    printf("=== Ruler of the Seas ===\n");
+    printf("Welcome! Let's configure the game.\n");
+
+    // Configuration phase: add players
+    while (game_state == RulerOfTheSeas__CONFIGURING)
     {
-        /* Initialize or re-initialize the game state */
-        RulerOfTheSeas__INITIALISATION();
+        int choice;
+        printf("\nConfiguration Menu:\n");
+        printf("1) Add Player\n");
+        printf("2) Start Game\n");
+        printf("Choice: ");
+        scanf("%d", &choice);
 
-        printf("Welcome to Ruler Of The Seas!\n\n");
-        add_players_interactively();
-
-        /* Start the game */
-        RulerOfTheSeas__StartGame();
-        printf("Game started!\n");
-        wait_for_enter();
-
-        /* Main game loop */
-        while(true)
+        if (choice == 1)
         {
-            /* Check game state */
-            if (RulerOfTheSeas__game_state_i == RulerOfTheSeas__FINISHED)
+            int pc;
+            RulerOfTheSeas__GetPlayersCount(&pc);
+            if (pc >= 4)
             {
-                printf("The game has finished!\n");
-                /* Identify winner(s) */
-                for (int p = 0; p < RulerOfTheSeas__MAX_PLAYERS; p++)
+                printf("Maximum number of players reached!\n");
+            }
+            else
+            {
+                int new_player_id = pc; 
+                printf("Adding player with ID: %d\n", new_player_id);
+                RulerOfTheSeas__AddPlayer(new_player_id);
+            }
+        }
+        else if (choice == 2)
+        {
+            int pc;
+            RulerOfTheSeas__GetPlayersCount(&pc);
+            if (pc < 2)
+            {
+                printf("Need at least 2 players to start.\n");
+            }
+            else
+            {
+                RulerOfTheSeas__StartGame();
+                RulerOfTheSeas__GetGameState(&game_state);
+                if (game_state == RulerOfTheSeas__PLAYING)
                 {
-                    if (RulerOfTheSeas__winner_i[p] == true) {
-                        printf("Player %d is the winner!\n", p);
-                    }
+                    printf("Game started!\n");
                 }
-                printf("1. Start a new game\n2. Exit\n");
-                scanf("%d", &choice);
-                if (choice == 1) {
-                    RulerOfTheSeas__StartNewGame();
-                    break; /* restart the outer loop */
-                } else {
-                    exit_game = true;
-                    break;
+                else
+                {
+                    printf("Could not start the game. Check conditions.\n");
                 }
             }
+        }
+        else
+        {
+            printf("Invalid choice.\n");
+        }
 
-            /* If the game is playing, each player takes a turn */
-            if (RulerOfTheSeas__game_state_i == RulerOfTheSeas__PLAYING)
+        RulerOfTheSeas__GetGameState(&game_state);
+    }
+
+    // Main game loop
+    while (true)
+    {
+        RulerOfTheSeas__GetGameState(&game_state);
+        if (game_state == RulerOfTheSeas__FINISHED)
+        {
+            printf("Game finished!\n");
+            // Find the winner
+            int pc;
+            RulerOfTheSeas__GetPlayersCount(&pc);
+            for (int p = 0; p < 4; p++)
             {
-                /* Count how many players have played this turn. When it equals player_count, we call NextTurn */
-                int turn_done = 0;
-                /* We know how many players are currently in the game by RulerOfTheSeas__player_count */
-                int current_player_count = RulerOfTheSeas__player_count;
-                int played_this_turn = 0;
-
-                /* Let's loop through all potential players and let them play if they are active */
-                while (played_this_turn < current_player_count && RulerOfTheSeas__game_state_i == RulerOfTheSeas__PLAYING)
+                bool is_winner;
+                RulerOfTheSeas__CheckPlayerWinner(p, &is_winner);
+                if (is_winner)
                 {
-                    /* Find a player that hasn't completed their turn */
-                    for (int p = 0; p < RulerOfTheSeas__MAX_PLAYERS; p++)
-                    {
-                        if (RulerOfTheSeas__players_i[p] == true && RulerOfTheSeas__turn_completed_i[p] == false) {
-                            /* This player's turn */
-                            player_turn(p);
-                            played_this_turn++;
-                            break;
-                        }
-                    }
-                }
-
-                /* All active players have completed their turn, move to the next turn */
-                if (RulerOfTheSeas__game_state_i == RulerOfTheSeas__PLAYING)
-                {
-                    RulerOfTheSeas__NextTurn();
+                    printf("Player %d is the winner!\n", p);
                 }
             }
+            break;
+        }
+        else if (game_state == RulerOfTheSeas__PLAYING)
+        {
+            // During a turn, players perform actions in any order (only 1 action per player)
+            int turn_completed_count;
+            int players_count;
+            RulerOfTheSeas__GetTurnCompletedCount(&turn_completed_count);
+            RulerOfTheSeas__GetPlayersCount(&players_count);
 
-            if (RulerOfTheSeas__game_state_i == RulerOfTheSeas__FINISHED)
+            if (turn_completed_count == players_count)
+            {
+                RulerOfTheSeas__NextTurn();
                 continue;
+            }
+
+            // Let the user choose which player will act now
+            int active_player = choose_active_player();
+            if (active_player < 0)
+            {
+                // No active player available (should not happen if game_state = PLAYING and turn not complete)
+                continue;
+            }
+
+            bool turn_completed;
+            RulerOfTheSeas__CheckPlayerTurnCompleted(active_player, &turn_completed);
+            if (turn_completed)
+            {
+                printf("This player's turn is already completed this round.\n");
+                continue; 
+            }
+
+            // Let the player choose an action
+            player_action_menu(active_player);
+        }
+        else
+        {
+            // Should not happen, but just in case
+            printf("Game is not in a recognized state.\n");
+            break;
         }
     }
 
-    printf("Thanks for playing!\n");
     return 0;
 }
 
-static void add_players_interactively(void)
+static void print_game_state(void)
 {
-    int num_players;
-    printf("How many players do you want to add? (Between %d and %d): ", RulerOfTheSeas__MIN_PLAYERS, RulerOfTheSeas__MAX_PLAYERS);
-    scanf("%d", &num_players);
-
-    if (num_players < RulerOfTheSeas__MIN_PLAYERS || num_players > RulerOfTheSeas__MAX_PLAYERS)
-    {
-        printf("Invalid number of players. Setting to %d.\n", RulerOfTheSeas__MIN_PLAYERS);
-        num_players = RulerOfTheSeas__MIN_PLAYERS;
-    }
-
-    for (int i = 0; i < num_players; i++)
-    {
-        RulerOfTheSeas__AddPlayer(i);
-        printf("Player %d added.\n", i);
-    }
-    wait_for_enter();
+    RulerOfTheSeas__GAME_STATE gs;
+    RulerOfTheSeas__GetGameState(&gs);
+    printf("Game State: ");
+    if (gs == RulerOfTheSeas__CONFIGURING) printf("CONFIGURING\n");
+    else if (gs == RulerOfTheSeas__PLAYING) printf("PLAYING\n");
+    else if (gs == RulerOfTheSeas__FINISHED) printf("FINISHED\n");
 }
 
-static void player_turn(int player)
+static void print_player_status(int player)
 {
-    int choice;
-    bool turn_done = false;
+    bool is_active;
+    RulerOfTheSeas__CheckPlayerIsActive(player, &is_active);
+    int coins;
+    RulerOfTheSeas__GetPlayerCoins(player, &coins);
 
-    while(!turn_done && RulerOfTheSeas__game_state_i == RulerOfTheSeas__PLAYING)
-    {
-        print_player_info(player);
-        printf("Player %d, choose an action:\n", player);
-        printf("1. AcquireIsland\n");
-        printf("2. InvestOnResources\n");
-        printf("3. InvestOnHappiness\n");
-        printf("4. AttackPlayer\n");
-        printf("(Any other number to skip turn)\n");
-        scanf("%d", &choice);
-
-        switch(choice)
-        {
-            case 1: /* AcquireIsland */
-                RulerOfTheSeas__AcquireIsland(player);
-                if (RulerOfTheSeas__turn_completed_i[player] == true)
-                    turn_done = true;
-                else
-                    printf("AcquireIsland action failed (preconditions not met).\n");
-                break;
-
-            case 2: /* InvestOnResources */
-                RulerOfTheSeas__InvestOnResources(player);
-                if (RulerOfTheSeas__turn_completed_i[player] == true)
-                    turn_done = true;
-                else
-                    printf("InvestOnResources action failed (preconditions not met).\n");
-                break;
-
-            case 3: /* InvestOnHappiness */
-                RulerOfTheSeas__InvestOnHappiness(player);
-                if (RulerOfTheSeas__turn_completed_i[player] == true)
-                    turn_done = true;
-                else
-                    printf("InvestOnHappiness action failed (preconditions not met).\n");
-                break;
-
-            case 4: /* AttackPlayer */
-            {
-                int victim, dice_attacker, dice_victim;
-                printf("Enter victim player ID: ");
-                scanf("%d", &victim);
-                printf("Enter dice for attacker (1..6): ");
-                scanf("%d", &dice_attacker);
-                printf("Enter dice for victim (1..6): ");
-                scanf("%d", &dice_victim);
-                RulerOfTheSeas__AttackPlayer(player, victim, dice_attacker, dice_victim);
-                if (RulerOfTheSeas__turn_completed_i[player] == true)
-                    turn_done = true;
-                else
-                    printf("AttackPlayer action failed (preconditions not met).\n");
-            }
-            break;
-
-            default:
-                /* Skip turn (not defined in the spec, but we can simulate by just marking turn completed) */
-                /* Actually, we can't just mark turn_completed because the B machine doesn't define that.
-                 * So the player effectively "wastes" their turn by trying a no-op operation that doesn't set turn_completed.
-                 * If we want a "skip turn" functionality, we'd need to define a new operation.
-                 * For now, just break and let them choose again or let them exit by pressing enter.
-                 */
-                printf("No valid action chosen. Press enter to skip...\n");
-                wait_for_enter();
-                /* The machine doesn't have a skip turn operation.
-                 * If you want to allow skipping, you'd need an operation or just let the player do nothing.
-                 * For simplicity, let's just consider that if they don't pick a valid action, their turn ends without changes.
-                 */
-                RulerOfTheSeas__turn_completed_i[player] = true;
-                RulerOfTheSeas__turn_completed_count = RulerOfTheSeas__turn_completed_count+1;
-                turn_done = true;
-                break;
-        }
-    }
-}
-
-static void print_player_info(int player)
-{
-    printf("\n--- Player %d Info ---\n", player);
-    printf("Coins: %d\n", RulerOfTheSeas__player_coins_i[player]);
-    printf("Islands owned: ");
+    printf("Player %d: %s, Coins: %d, Islands: ", player, is_active ? "Active" : "Inactive", coins);
+    bool has_island = false;
     for (int i = 0; i < RulerOfTheSeas__MAX_ISLANDS; i++)
     {
-        if (RulerOfTheSeas__player_islands_i[player][i] == true)
+        bool player_has_island;
+        RulerOfTheSeas__CheckPlayerHasIsland(player, i, &player_has_island);
+        if (player_has_island)
+        {
             printf("%d ", i);
+            has_island = true;
+        }
     }
-    printf("\n----------------------\n");
+    if (!has_island) printf("None");
+    printf("\n");
 }
 
-static void wait_for_enter(void)
+static bool any_active_players(void)
 {
-    printf("Press Enter to continue...\n");
-    getchar(); /* consume leftover newline if any */
-    getchar(); /* wait for user to press enter */
+    for (int p = 0; p < 4; p++)
+    {
+        bool is_active;
+        RulerOfTheSeas__CheckPlayerIsActive(p, &is_active);
+        if (is_active) return true;
+    }
+    return false;
+}
+
+static int choose_active_player(void)
+{
+    // Print all players and let user choose one who hasn't completed turn
+    int players_count;
+    RulerOfTheSeas__GetPlayersCount(&players_count);
+    if (players_count == 0) return -1; 
+
+    printf("\nChoose a player to take action this turn:\n");
+    for (int p = 0; p < 4; p++)
+    {
+        bool is_active;
+        RulerOfTheSeas__CheckPlayerIsActive(p, &is_active);
+
+        if (is_active)
+        {
+            bool turn_completed;
+            RulerOfTheSeas__CheckPlayerTurnCompleted(p, &turn_completed);
+            if (!turn_completed)
+            {
+                print_player_status(p);
+            }
+        }
+    }
+
+    int chosen;
+    printf("Player ID: ");
+    scanf("%d", &chosen);
+
+    bool is_active;
+    RulerOfTheSeas__CheckPlayerIsActive(chosen, &is_active);
+    if (!is_active)
+    {
+        printf("This player is not active.\n");
+        return -1;
+    }
+
+    bool turn_completed;
+    RulerOfTheSeas__CheckPlayerTurnCompleted(chosen, &turn_completed);
+    if (turn_completed)
+    {
+        printf("This player's turn is already completed.\n");
+        return -1;
+    }
+
+    return chosen;
+}
+
+static void player_action_menu(int player)
+{
+    print_player_status(player);
+    print_actions_menu();
+
+    int action;
+    printf("Choose action (1-4): ");
+    scanf("%d", &action);
+
+    switch (action)
+    {
+        case 1:
+            handle_invest_resources(player);
+            break;
+        case 2:
+            handle_invest_happiness(player);
+            break;
+        case 3:
+            handle_acquire_island(player);
+            break;
+        case 4:
+            handle_attack_player(player);
+            break;
+        default:
+            printf("Invalid action.\n");
+            break;
+    }
+}
+
+static void print_actions_menu(void)
+{
+    printf("Available actions:\n");
+    printf("1) Invest on Resources (Gain coins, lose happiness)\n");
+    printf("2) Invest on Happiness (Spend coins, gain happiness)\n");
+    printf("3) Acquire another Island (Cost 3 coins, get a new island)\n");
+    printf("4) Attack another Player (Cost 4 coins, may steal island)\n");
+}
+
+static void handle_acquire_island(int player)
+{
+    RulerOfTheSeas__AcquireIsland(player);
+    // If successful, turn_completed should be true
+    bool turn_completed;
+    RulerOfTheSeas__CheckPlayerTurnCompleted(player, &turn_completed);
+    if (turn_completed)
+    {
+        printf("Island acquired successfully.\n");
+    }
+    else
+    {
+        printf("Could not acquire island. Check if you have enough coins or if islands are available.\n");
+    }
+}
+
+static void handle_invest_resources(int player)
+{
+    RulerOfTheSeas__InvestOnResources(player);
+    bool turn_completed;
+    RulerOfTheSeas__CheckPlayerTurnCompleted(player, &turn_completed);
+    if (turn_completed)
+    {
+        printf("Invested in resources successfully. You gained coins from each island but each island lost happiness.\n");
+    }
+    else
+    {
+        printf("Could not invest on resources. Maybe your turn is already done or game is not in playing state.\n");
+    }
+}
+
+static void handle_invest_happiness(int player)
+{
+    RulerOfTheSeas__InvestOnHappiness(player);
+    bool turn_completed;
+    RulerOfTheSeas__CheckPlayerTurnCompleted(player, &turn_completed);
+    if (turn_completed)
+    {
+        printf("Invested in happiness successfully. Islands gained happiness points.\n");
+    }
+    else
+    {
+        printf("Could not invest on happiness. Check if you have enough coins.\n");
+    }
+}
+
+static void handle_attack_player(int player)
+{
+    printf("Choose a victim player ID to attack: ");
+    int victim;
+    scanf("%d", &victim);
+    if (victim == player)
+    {
+        printf("You can't attack yourself!\n");
+        return;
+    }
+
+    int dice_attacker = roll_dice();
+    int dice_victim = roll_dice();
+    printf("Attacker rolled %d, Victim rolled %d\n", dice_attacker, dice_victim);
+
+    RulerOfTheSeas__AttackPlayer(player, victim, dice_attacker, dice_victim);
+
+    bool turn_completed;
+    RulerOfTheSeas__CheckPlayerTurnCompleted(player, &turn_completed);
+    
+    printf("Attack performed.\n");
+}
+
+static void end_turn_phase(void)
+{
+    RulerOfTheSeas__NextTurn();
+}
+
+static int roll_dice(void)
+{
+    return (rand() % 6) + 1; 
 }

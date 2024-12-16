@@ -383,6 +383,8 @@ void RulerOfTheSeas__AttackPlayer(RulerOfTheSeas__PLAYER attacker, RulerOfTheSea
                 }
             }
         }
+        RulerOfTheSeas__turn_completed_i[attacker] = true;
+        RulerOfTheSeas__turn_completed_count = RulerOfTheSeas__turn_completed_count+1;
     }
 }
 
@@ -403,6 +405,7 @@ void RulerOfTheSeas__NextTurn(void)
                     
                     ii = 0;
                     player_island_counter = 0;
+                    RulerOfTheSeas__player_coins_i[pp] = RulerOfTheSeas__player_coins_i[pp]+1;
                     while((ii) < (RulerOfTheSeas__MAX_ISLANDS))
                     {
                         {

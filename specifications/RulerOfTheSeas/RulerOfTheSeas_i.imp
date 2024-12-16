@@ -315,7 +315,9 @@ OPERATIONS
                             END
                         END
                     END
-                END
+                END;
+                turn_completed_i(attacker) := TRUE;
+                turn_completed_count := turn_completed_count + 1
             END
         END;
     
@@ -329,6 +331,7 @@ OPERATIONS
                         VAR ii, player_island_counter IN
                             ii := 0;
                             player_island_counter := 0;
+                            player_coins_i(pp) := player_coins_i(pp) + 1;
                             WHILE ii < MAX_ISLANDS DO
                                 VAR is_player_island IN
                                     is_player_island := player_islands_i(pp, ii);
