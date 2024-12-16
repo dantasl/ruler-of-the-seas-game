@@ -387,19 +387,27 @@ void RulerOfTheSeas__AttackPlayer(RulerOfTheSeas__PLAYER attacker, RulerOfTheSea
         RulerOfTheSeas__turn_completed_count = RulerOfTheSeas__turn_completed_count+1;
         {
             int32_t victim_islands_counter;
+            int32_t attacker_islands_counter;
             int32_t ii;
             
             victim_islands_counter = 0;
+            attacker_islands_counter = 0;
             ii = 0;
             while((ii) < (RulerOfTheSeas__MAX_ISLANDS))
             {
                 {
                     bool is_victim_island;
+                    bool is_attacker_island;
                     
                     is_victim_island = RulerOfTheSeas__player_islands_i[victim][ii];
+                    is_attacker_island = RulerOfTheSeas__player_islands_i[attacker][ii];
                     if(is_victim_island == true)
                     {
                         victim_islands_counter = victim_islands_counter+1;
+                    }
+                    if(is_attacker_island == true)
+                    {
+                        attacker_islands_counter = attacker_islands_counter+1;
                     }
                     ii = ii+1;
                 }
@@ -408,11 +416,21 @@ void RulerOfTheSeas__AttackPlayer(RulerOfTheSeas__PLAYER attacker, RulerOfTheSea
             {
                 RulerOfTheSeas__players_i[victim] = false;
                 RulerOfTheSeas__player_count = RulerOfTheSeas__player_count-1;
+                if(RulerOfTheSeas__player_count == 1)
+                {
+                    RulerOfTheSeas__winner_i[attacker] = true;
+                    RulerOfTheSeas__game_state_i = RulerOfTheSeas__FINISHED;
+                }
             }
-            if(RulerOfTheSeas__player_count == 1)
+            if(attacker_islands_counter == 0)
             {
-                RulerOfTheSeas__winner_i[attacker] = true;
-                RulerOfTheSeas__game_state_i = RulerOfTheSeas__FINISHED;
+                RulerOfTheSeas__players_i[attacker] = false;
+                RulerOfTheSeas__player_count = RulerOfTheSeas__player_count-1;
+                if(RulerOfTheSeas__player_count == 1)
+                {
+                    RulerOfTheSeas__winner_i[victim] = true;
+                    RulerOfTheSeas__game_state_i = RulerOfTheSeas__FINISHED;
+                }
             }
         }
     }

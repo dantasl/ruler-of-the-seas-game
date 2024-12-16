@@ -306,8 +306,6 @@ static void handle_invest_resources(int player)
     {
         printf("Could not invest on resources. Maybe your turn is already done or game is not in playing state.\n");
     }
-
-    debug_game_state();
 }
 
 static void handle_invest_happiness(int player)
@@ -327,6 +325,14 @@ static void handle_invest_happiness(int player)
 
 static void handle_attack_player(int player)
 {
+    int coins;
+    RulerOfTheSeas__GetPlayerCoins(player, &coins);
+    if (coins < 4)
+    {
+        printf("You need at least 4 coins to attack another player.\n");
+        return;
+    }
+
     printf("Choose a victim player ID to attack: ");
     int victim;
     scanf("%d", &victim);
