@@ -221,5 +221,27 @@ OPERATIONS
             turn_completed := {} ||
             winner := {} ||
             game_state := CONFIGURING
+        END;
+    
+    query_game_state <-- GetGameState =
+        BEGIN
+            query_game_state := game_state
+        END;
+    
+    query_player_count <-- GetPlayersCount =
+        BEGIN
+            query_player_count := card(players)
+        END;
+    
+    query_player_winner <-- CheckPlayerWinner(pp) =
+        PRE
+            pp : PLAYER &
+            game_state = FINISHED
+        THEN
+            IF pp : winner THEN
+                query_player_winner := TRUE
+            ELSE
+                query_player_winner := FALSE
+            END
         END
 END

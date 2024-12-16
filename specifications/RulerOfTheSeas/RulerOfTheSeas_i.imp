@@ -393,5 +393,28 @@ OPERATIONS
                 game_state_i := CONFIGURING;
                 winner_i := PLAYER * {FALSE}
             END
+        END;
+    
+    query_game_state <-- GetGameState =
+        BEGIN
+            query_game_state := game_state_i
+        END;
+    
+    query_player_count <-- GetPlayersCount =
+        BEGIN
+            query_player_count := player_count
+        END;
+    
+    query_player_winner <-- CheckPlayerWinner(pp) =
+        BEGIN
+            VAR is_winner IN
+                is_winner := winner_i(pp);
+                IF game_state_i = FINISHED & is_winner = TRUE
+                THEN
+                    query_player_winner := TRUE
+                ELSE
+                    query_player_winner := FALSE
+                END
+            END
         END
 END
