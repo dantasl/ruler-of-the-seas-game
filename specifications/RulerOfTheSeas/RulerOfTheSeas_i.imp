@@ -325,50 +325,54 @@ OPERATIONS
         BEGIN
             IF game_state_i = PLAYING & player_count = turn_completed_count
             THEN
-                VAR pp IN
+                VAR pp, is_active_player IN
                     pp := 0;
+                    is_active_player := players_i(pp);
                     WHILE pp < MAX_PLAYERS DO
-                        VAR ii, player_island_counter IN
-                            ii := 0;
-                            player_island_counter := 0;
-                            player_coins_i(pp) := player_coins_i(pp) + 1;
-                            WHILE ii < MAX_ISLANDS DO
-                                VAR is_player_island IN
-                                    is_player_island := player_islands_i(pp, ii);
-                                    IF is_player_island = TRUE
-                                    THEN
-                                        VAR island_happiness_value IN
-                                            island_happiness_value := island_happiness_i(ii);
-                                            IF island_happiness_value <= 0
-                                            THEN
-                                                player_islands_i(pp, ii) := FALSE;
-                                                available_islands_i(ii) := TRUE
-                                            ELSE
-                                                player_island_counter := player_island_counter + 1
+                        IF is_active_player = TRUE
+                        THEN
+                            VAR ii, player_island_counter IN
+                                ii := 0;
+                                player_island_counter := 0;
+                                player_coins_i(pp) := player_coins_i(pp) + 1;
+                                WHILE ii < MAX_ISLANDS DO
+                                    VAR is_player_island IN
+                                        is_player_island := player_islands_i(pp, ii);
+                                        IF is_player_island = TRUE
+                                        THEN
+                                            VAR island_happiness_value IN
+                                                island_happiness_value := island_happiness_i(ii);
+                                                IF island_happiness_value <= 0
+                                                THEN
+                                                    player_islands_i(pp, ii) := FALSE;
+                                                    available_islands_i(ii) := TRUE
+                                                ELSE
+                                                    player_island_counter := player_island_counter + 1
+                                                END
                                             END
-                                        END
-                                    END;
-                                    ii := ii + 1
+                                        END;
+                                        ii := ii + 1
+                                    END
+                                INVARIANT
+                                    0 <= ii & ii <= MAX_ISLANDS &
+                                    player_island_counter >= 0 &
+                                    island_happiness_i(ii) >= 0
+                                VARIANT
+                                    MAX_ISLANDS - ii
+                                END;
+                                IF player_island_counter = 0
+                                THEN
+                                    players_i(pp) := FALSE;
+                                    player_count := player_count - 1
+                                END;
+                                IF player_count = 1 & player_island_counter > 0
+                                THEN
+                                    winner_i(pp) := TRUE;
+                                    game_state_i := FINISHED
                                 END
-                            INVARIANT
-                                0 <= ii & ii <= MAX_ISLANDS &
-                                player_island_counter >= 0 &
-                                island_happiness_i(ii) >= 0
-                            VARIANT
-                                MAX_ISLANDS - ii
-                            END;
-                            IF player_island_counter = 0
-                            THEN
-                                players_i(pp) := FALSE;
-                                player_count := player_count - 1
-                            END;
-                            IF player_count = 1 & player_island_counter > 0
-                            THEN
-                                winner_i(pp) := TRUE;
-                                game_state_i := FINISHED
-                            END;
-                            pp := pp + 1
-                        END
+                            END
+                        END;
+                        pp := pp + 1
                     INVARIANT
                         0 <= pp & pp <= MAX_PLAYERS &
                         player_count >= 1 &

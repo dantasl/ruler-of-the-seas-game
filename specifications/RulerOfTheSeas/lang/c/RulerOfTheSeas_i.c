@@ -397,56 +397,61 @@ void RulerOfTheSeas__NextTurn(void)
         {
             {
                 int32_t pp;
+                bool is_active_player;
                 
                 pp = 0;
+                is_active_player = RulerOfTheSeas__players_i[pp];
                 while((pp) < (RulerOfTheSeas__MAX_PLAYERS))
                 {
+                    if(is_active_player == true)
                     {
-                        int32_t ii;
-                        int32_t player_island_counter;
-                        
-                        ii = 0;
-                        player_island_counter = 0;
-                        RulerOfTheSeas__player_coins_i[pp] = RulerOfTheSeas__player_coins_i[pp]+1;
-                        while((ii) < (RulerOfTheSeas__MAX_ISLANDS))
                         {
+                            int32_t ii;
+                            int32_t player_island_counter;
+                            
+                            ii = 0;
+                            player_island_counter = 0;
+                            RulerOfTheSeas__player_coins_i[pp] = RulerOfTheSeas__player_coins_i[pp]+1;
+                            while((ii) < (RulerOfTheSeas__MAX_ISLANDS))
                             {
-                                bool is_player_island;
-                                
-                                is_player_island = RulerOfTheSeas__player_islands_i[pp][ii];
-                                if(is_player_island == true)
                                 {
+                                    bool is_player_island;
+                                    
+                                    is_player_island = RulerOfTheSeas__player_islands_i[pp][ii];
+                                    if(is_player_island == true)
                                     {
-                                        int32_t island_happiness_value;
-                                        
-                                        island_happiness_value = RulerOfTheSeas__island_happiness_i[ii];
-                                        if((island_happiness_value) <= (0))
                                         {
-                                            RulerOfTheSeas__player_islands_i[pp][ii] = false;
-                                            RulerOfTheSeas__available_islands_i[ii] = true;
-                                        }
-                                        else
-                                        {
-                                            player_island_counter = player_island_counter+1;
+                                            int32_t island_happiness_value;
+                                            
+                                            island_happiness_value = RulerOfTheSeas__island_happiness_i[ii];
+                                            if((island_happiness_value) <= (0))
+                                            {
+                                                RulerOfTheSeas__player_islands_i[pp][ii] = false;
+                                                RulerOfTheSeas__available_islands_i[ii] = true;
+                                            }
+                                            else
+                                            {
+                                                player_island_counter = player_island_counter+1;
+                                            }
                                         }
                                     }
+                                    ii = ii+1;
                                 }
-                                ii = ii+1;
+                            }
+                            if(player_island_counter == 0)
+                            {
+                                RulerOfTheSeas__players_i[pp] = false;
+                                RulerOfTheSeas__player_count = RulerOfTheSeas__player_count-1;
+                            }
+                            if((RulerOfTheSeas__player_count == 1) &&
+                            ((player_island_counter) > (0)))
+                            {
+                                RulerOfTheSeas__winner_i[pp] = true;
+                                RulerOfTheSeas__game_state_i = RulerOfTheSeas__FINISHED;
                             }
                         }
-                        if(player_island_counter == 0)
-                        {
-                            RulerOfTheSeas__players_i[pp] = false;
-                            RulerOfTheSeas__player_count = RulerOfTheSeas__player_count-1;
-                        }
-                        if((RulerOfTheSeas__player_count == 1) &&
-                        ((player_island_counter) > (0)))
-                        {
-                            RulerOfTheSeas__winner_i[pp] = true;
-                            RulerOfTheSeas__game_state_i = RulerOfTheSeas__FINISHED;
-                        }
-                        pp = pp+1;
                     }
+                    pp = pp+1;
                 }
                 for(i = 0; i <= 3;i++)
                 {
