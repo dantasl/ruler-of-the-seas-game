@@ -375,7 +375,9 @@ OPERATIONS
                         game_state_i = PLAYING
                     VARIANT
                         MAX_PLAYERS - pp
-                    END
+                    END;
+                    turn_completed_i := PLAYER * {FALSE};
+                    turn_completed_count := 0
                 END            
             END 
         END;

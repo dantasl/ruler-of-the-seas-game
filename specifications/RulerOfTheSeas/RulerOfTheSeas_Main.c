@@ -118,26 +118,27 @@ int main(void)
             {
                 RulerOfTheSeas__NextTurn();
                 continue;
-            }
+            } else {
 
-            // Let the user choose which player will act now
-            int active_player = choose_active_player();
-            if (active_player < 0)
-            {
-                // No active player available (should not happen if game_state = PLAYING and turn not complete)
-                continue;
-            }
+                // Let the user choose which player will act now
+                int active_player = choose_active_player();
+                if (active_player < 0)
+                {
+                    // No active player available (should not happen if game_state = PLAYING and turn not complete)
+                    continue;
+                }
 
-            bool turn_completed;
-            RulerOfTheSeas__CheckPlayerTurnCompleted(active_player, &turn_completed);
-            if (turn_completed)
-            {
-                printf("This player's turn is already completed this round.\n");
-                continue; 
-            }
+                bool turn_completed;
+                RulerOfTheSeas__CheckPlayerTurnCompleted(active_player, &turn_completed);
+                if (turn_completed)
+                {
+                    printf("This player's turn is already completed this round.\n");
+                    continue; 
+                }
 
-            // Let the player choose an action
-            player_action_menu(active_player);
+                // Let the player choose an action
+                player_action_menu(active_player);
+            }
         }
         else
         {
@@ -166,20 +167,12 @@ static void print_player_status(int player)
     RulerOfTheSeas__CheckPlayerIsActive(player, &is_active);
     int coins;
     RulerOfTheSeas__GetPlayerCoins(player, &coins);
+    int islands;
+    RulerOfTheSeas__GetPlayerIslandsCount(player, &islands);
+    int total_happiness;
+    RulerOfTheSeas__GetTotalHappinessPlayer(player, &total_happiness);
 
-    printf("Player %d: %s, Coins: %d, Islands: ", player, is_active ? "Active" : "Inactive", coins);
-    bool has_island = false;
-    for (int i = 0; i < RulerOfTheSeas__MAX_ISLANDS; i++)
-    {
-        bool player_has_island;
-        RulerOfTheSeas__CheckPlayerHasIsland(player, i, &player_has_island);
-        if (player_has_island)
-        {
-            printf("%d ", i);
-            has_island = true;
-        }
-    }
-    if (!has_island) printf("None");
+    printf("Player %d: %s, Coins: %d, Islands: %d, Total Happiness: %d", player, is_active ? "Active" : "Inactive", coins, islands, total_happiness);
     printf("\n");
 }
 
@@ -221,6 +214,7 @@ static int choose_active_player(void)
     int chosen;
     printf("Player ID: ");
     scanf("%d", &chosen);
+    printf("\n");
 
     bool is_active;
     RulerOfTheSeas__CheckPlayerIsActive(chosen, &is_active);
