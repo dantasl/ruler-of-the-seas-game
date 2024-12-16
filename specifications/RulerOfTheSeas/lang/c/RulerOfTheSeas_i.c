@@ -519,8 +519,7 @@ void RulerOfTheSeas__CheckPlayerWinner(RulerOfTheSeas__PLAYER pp, bool *query_pl
         bool is_winner;
         
         is_winner = RulerOfTheSeas__winner_i[pp];
-        if((RulerOfTheSeas__game_state_i == RulerOfTheSeas__FINISHED) &&
-        (is_winner == true))
+        if(is_winner == true)
         {
             (*query_player_winner) = true;
         }
@@ -537,8 +536,7 @@ void RulerOfTheSeas__CheckPlayerTurnCompleted(RulerOfTheSeas__PLAYER pp, bool *q
         bool is_turn_completed;
         
         is_turn_completed = RulerOfTheSeas__turn_completed_i[pp];
-        if((is_turn_completed == true) &&
-        (RulerOfTheSeas__game_state_i == RulerOfTheSeas__PLAYING))
+        if(is_turn_completed == true)
         {
             (*query_player_turn_completed) = true;
         }

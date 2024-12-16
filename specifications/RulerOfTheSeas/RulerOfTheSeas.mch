@@ -235,8 +235,7 @@ OPERATIONS
     
     query_player_winner <-- CheckPlayerWinner(pp) =
         PRE
-            pp : PLAYER &
-            game_state = FINISHED
+            pp : PLAYER
         THEN
             IF pp : winner THEN
                 query_player_winner := TRUE
@@ -247,8 +246,7 @@ OPERATIONS
     
     query_player_turn_completed <-- CheckPlayerTurnCompleted(pp) =
         PRE
-            pp : PLAYER &
-            game_state = PLAYING
+            pp : PLAYER
         THEN
             IF pp : turn_completed THEN
                 query_player_turn_completed := TRUE
@@ -264,8 +262,7 @@ OPERATIONS
     
     query_player_is_active <-- CheckPlayerIsActive(pp) =
         PRE
-            pp : PLAYER &
-            game_state = PLAYING
+            pp : PLAYER
         THEN
             IF pp : players THEN
                 query_player_is_active := TRUE

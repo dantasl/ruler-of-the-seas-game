@@ -414,7 +414,7 @@ OPERATIONS
         BEGIN
             VAR is_winner IN
                 is_winner := winner_i(pp);
-                IF game_state_i = FINISHED & is_winner = TRUE
+                IF is_winner = TRUE
                 THEN
                     query_player_winner := TRUE
                 ELSE
@@ -427,7 +427,7 @@ OPERATIONS
         BEGIN
             VAR is_turn_completed IN
                 is_turn_completed := turn_completed_i(pp);
-                IF is_turn_completed = TRUE & game_state_i = PLAYING
+                IF is_turn_completed = TRUE
                 THEN
                     query_player_turn_completed := TRUE
                 ELSE
