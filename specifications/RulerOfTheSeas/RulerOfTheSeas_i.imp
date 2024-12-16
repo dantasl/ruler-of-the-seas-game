@@ -78,7 +78,7 @@ OPERATIONS
                     VAR ii_index, found IN
                         ii_index := 0;
                         found := FALSE;
-                        WHILE ii_index <= MAX_ISLANDS & found = FALSE DO
+                        WHILE ii_index < MAX_ISLANDS & found = FALSE DO
                             VAR is_available_island IN
                                 is_available_island := available_islands_i(ii_index);
                                 IF is_available_island = TRUE THEN
@@ -90,11 +90,11 @@ OPERATIONS
                                 END
                              END
                         INVARIANT
-                            ii_index : 0..MAX_ISLANDS  &
+                            ii_index : 0..(MAX_ISLANDS - 1)  &
                             available_islands_i(ii_index) = TRUE &
                             found = FALSE => player_islands_i(pp, ii_index) = FALSE
                         VARIANT
-                            MAX_ISLANDS - ii_index + 1
+                            MAX_ISLANDS - ii_index
                         END
                     END 
                 END
@@ -120,7 +120,7 @@ OPERATIONS
                     VAR ii_index, found IN
                         ii_index := 0;
                         found := FALSE;
-                        WHILE ii_index <= MAX_ISLANDS & found = FALSE DO
+                        WHILE ii_index < MAX_ISLANDS & found = FALSE DO
                             VAR is_available_island IN
                                 is_available_island := available_islands_i(ii_index);
                                 IF is_available_island = TRUE THEN
@@ -133,11 +133,11 @@ OPERATIONS
                                 END
                             END
                         INVARIANT
-                            ii_index : 0..MAX_ISLANDS  &
+                            ii_index : 0..(MAX_ISLANDS - 1)  &
                             available_islands_i(ii_index) = TRUE &
                             found = FALSE => player_islands_i(pp, ii_index) = FALSE
                         VARIANT
-                            MAX_ISLANDS - ii_index + 1
+                            MAX_ISLANDS - ii_index
                         END
                     END;
                     turn_completed_i(pp) := TRUE;

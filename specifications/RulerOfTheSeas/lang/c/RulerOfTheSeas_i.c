@@ -90,7 +90,7 @@ void RulerOfTheSeas__AddPlayer(RulerOfTheSeas__PLAYER pp)
                 
                 ii_index = 0;
                 found = false;
-                while(((ii_index) <= (RulerOfTheSeas__MAX_ISLANDS)) &&
+                while(((ii_index) < (RulerOfTheSeas__MAX_ISLANDS)) &&
                 (found == false))
                 {
                     {
@@ -144,7 +144,7 @@ void RulerOfTheSeas__AcquireIsland(RulerOfTheSeas__PLAYER pp)
                 
                 ii_index = 0;
                 found = false;
-                while(((ii_index) <= (RulerOfTheSeas__MAX_ISLANDS)) &&
+                while(((ii_index) < (RulerOfTheSeas__MAX_ISLANDS)) &&
                 (found == false))
                 {
                     {
