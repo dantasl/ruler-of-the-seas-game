@@ -442,5 +442,23 @@ OPERATIONS
                     query_player_is_active := FALSE
                 END
             END
+        END;
+
+    query_player_coins <-- GetPlayerCoins(pp) =
+        BEGIN
+            query_player_coins := player_coins_i(pp)
+        END;
+    
+    query_player_has_island <-- CheckPlayerHasIsland(pp, ii) =
+        BEGIN
+            VAR is_player_island IN
+                is_player_island := player_islands_i(pp, ii);
+                IF is_player_island = TRUE
+                THEN
+                    query_player_has_island := TRUE
+                ELSE
+                    query_player_has_island := FALSE
+                END
+            END
         END
 END
