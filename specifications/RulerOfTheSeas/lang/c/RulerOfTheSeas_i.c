@@ -385,6 +385,36 @@ void RulerOfTheSeas__AttackPlayer(RulerOfTheSeas__PLAYER attacker, RulerOfTheSea
         }
         RulerOfTheSeas__turn_completed_i[attacker] = true;
         RulerOfTheSeas__turn_completed_count = RulerOfTheSeas__turn_completed_count+1;
+        {
+            int32_t victim_islands_counter;
+            int32_t ii;
+            
+            victim_islands_counter = 0;
+            ii = 0;
+            while((ii) < (RulerOfTheSeas__MAX_ISLANDS))
+            {
+                {
+                    bool is_victim_island;
+                    
+                    is_victim_island = RulerOfTheSeas__player_islands_i[victim][ii];
+                    if(is_victim_island == true)
+                    {
+                        victim_islands_counter = victim_islands_counter+1;
+                    }
+                    ii = ii+1;
+                }
+            }
+            if(victim_islands_counter == 0)
+            {
+                RulerOfTheSeas__players_i[victim] = false;
+                RulerOfTheSeas__player_count = RulerOfTheSeas__player_count-1;
+            }
+            if(RulerOfTheSeas__player_count == 1)
+            {
+                RulerOfTheSeas__winner_i[attacker] = true;
+                RulerOfTheSeas__game_state_i = RulerOfTheSeas__FINISHED;
+            }
+        }
     }
 }
 
