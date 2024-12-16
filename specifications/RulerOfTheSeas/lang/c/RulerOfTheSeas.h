@@ -64,6 +64,8 @@ extern void RulerOfTheSeas__GetTurnCompletedCount(int32_t *query_turn_completed_
 extern void RulerOfTheSeas__CheckPlayerIsActive(RulerOfTheSeas__PLAYER pp, bool *query_player_is_active);
 extern void RulerOfTheSeas__GetPlayerCoins(RulerOfTheSeas__PLAYER pp, int32_t *query_player_coins);
 extern void RulerOfTheSeas__CheckPlayerHasIsland(RulerOfTheSeas__PLAYER pp, RulerOfTheSeas__ISLAND ii, bool *query_player_has_island);
+extern void RulerOfTheSeas__GetPlayerIslandsCount(RulerOfTheSeas__PLAYER pp, int32_t *query_player_islands_count);
+extern void RulerOfTheSeas__GetTotalHappinessPlayer(RulerOfTheSeas__PLAYER pp, int32_t *query_total_happiness_player);
 
 #ifdef __cplusplus
 }

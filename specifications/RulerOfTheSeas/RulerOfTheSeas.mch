@@ -291,5 +291,20 @@ OPERATIONS
             ELSE
                 query_player_has_island := FALSE
             END
+        END;
+    
+    query_player_islands_count <-- GetPlayerIslandsCount(pp) =
+        PRE
+            pp : PLAYER
+        THEN
+            query_player_islands_count := card(player_islands(pp))
+        END;
+    
+    query_total_happiness_player <-- GetTotalHappinessPlayer(pp) =
+        PRE
+            pp : PLAYER
+        THEN
+            query_total_happiness_player := SIGMA(ii).(ii : player_islands(pp) | island_happiness(ii))
         END
+
 END

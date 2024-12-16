@@ -586,3 +586,53 @@ void RulerOfTheSeas__CheckPlayerHasIsland(RulerOfTheSeas__PLAYER pp, RulerOfTheS
     }
 }
 
+void RulerOfTheSeas__GetPlayerIslandsCount(RulerOfTheSeas__PLAYER pp, int32_t *query_player_islands_count)
+{
+    {
+        int32_t player_islands_counter;
+        int32_t ii;
+        
+        player_islands_counter = 0;
+        ii = 0;
+        while((ii) < (RulerOfTheSeas__MAX_ISLANDS))
+        {
+            {
+                bool is_player_island;
+                
+                is_player_island = RulerOfTheSeas__player_islands_i[pp][ii];
+                if(is_player_island == true)
+                {
+                    player_islands_counter = player_islands_counter+1;
+                }
+                ii = ii+1;
+            }
+        }
+        (*query_player_islands_count) = player_islands_counter;
+    }
+}
+
+void RulerOfTheSeas__GetTotalHappinessPlayer(RulerOfTheSeas__PLAYER pp, int32_t *query_total_happiness_player)
+{
+    {
+        int32_t player_islands_happiness_counter;
+        int32_t ii;
+        
+        player_islands_happiness_counter = 0;
+        ii = 0;
+        while((ii) < (RulerOfTheSeas__MAX_ISLANDS))
+        {
+            {
+                bool is_player_island;
+                
+                is_player_island = RulerOfTheSeas__player_islands_i[pp][ii];
+                if(is_player_island == true)
+                {
+                    player_islands_happiness_counter = player_islands_happiness_counter+RulerOfTheSeas__island_happiness_i[ii];
+                }
+                ii = ii+1;
+            }
+        }
+        (*query_total_happiness_player) = player_islands_happiness_counter;
+    }
+}
+

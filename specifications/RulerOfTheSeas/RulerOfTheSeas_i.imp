@@ -468,5 +468,53 @@ OPERATIONS
                     query_player_has_island := FALSE
                 END
             END
-        END
+        END;
+    
+    query_player_islands_count <-- GetPlayerIslandsCount(pp) =
+        BEGIN
+            VAR player_islands_counter, ii IN
+                player_islands_counter := 0;
+                ii := 0;
+                WHILE ii < MAX_ISLANDS DO
+                    VAR is_player_island IN
+                        is_player_island := player_islands_i(pp, ii);
+                        IF is_player_island = TRUE
+                        THEN
+                            player_islands_counter := player_islands_counter + 1
+                        END;
+                        ii := ii + 1
+                    END
+                INVARIANT
+                    0 <= ii & ii <= MAX_ISLANDS &
+                    player_islands_counter >= 0
+                VARIANT
+                    MAX_ISLANDS - ii
+                END;
+                query_player_islands_count := player_islands_counter
+            END
+        END;
+
+        query_total_happiness_player <-- GetTotalHappinessPlayer(pp) =
+            BEGIN
+                VAR player_islands_happiness_counter, ii IN
+                    player_islands_happiness_counter := 0;
+                    ii := 0;
+                    WHILE ii < MAX_ISLANDS DO
+                        VAR is_player_island IN
+                            is_player_island := player_islands_i(pp, ii);
+                            IF is_player_island = TRUE
+                            THEN
+                                player_islands_happiness_counter := player_islands_happiness_counter + island_happiness_i(ii)
+                            END;
+                            ii := ii + 1
+                        END
+                    INVARIANT
+                        0 <= ii & ii <= MAX_ISLANDS &
+                        player_islands_happiness_counter >= 0
+                    VARIANT
+                        MAX_ISLANDS - ii
+                    END;
+                    query_total_happiness_player := player_islands_happiness_counter
+                END
+            END
 END
