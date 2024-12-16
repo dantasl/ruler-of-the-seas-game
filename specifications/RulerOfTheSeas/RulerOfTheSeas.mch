@@ -243,5 +243,29 @@ OPERATIONS
             ELSE
                 query_player_winner := FALSE
             END
+        END;
+    
+    query_player_turn_completed <-- CheckPlayerTurnCompleted(pp) =
+        PRE
+            pp : PLAYER &
+            game_state = PLAYING
+        THEN
+            IF pp : turn_completed THEN
+                query_player_turn_completed := TRUE
+            ELSE
+                query_player_turn_completed := FALSE
+            END
+        END;
+    
+    query_player_is_active <-- CheckPlayerIsActive(pp) =
+        PRE
+            pp : PLAYER &
+            game_state = PLAYING
+        THEN
+            IF pp : players THEN
+                query_player_is_active := TRUE
+            ELSE
+                query_player_is_active := FALSE
+            END
         END
 END

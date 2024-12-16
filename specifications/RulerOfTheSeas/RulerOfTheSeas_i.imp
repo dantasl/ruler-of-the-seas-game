@@ -416,5 +416,31 @@ OPERATIONS
                     query_player_winner := FALSE
                 END
             END
+        END;
+    
+    query_player_turn_completed <-- CheckPlayerTurnCompleted(pp) =
+        BEGIN
+            VAR is_turn_completed IN
+                is_turn_completed := turn_completed_i(pp);
+                IF is_turn_completed = TRUE & game_state_i = PLAYING
+                THEN
+                    query_player_turn_completed := TRUE
+                ELSE
+                    query_player_turn_completed := FALSE
+                END
+            END
+        END;
+    
+    query_player_is_active <-- CheckPlayerIsActive(pp) =
+        BEGIN
+            VAR is_player_active IN
+                is_player_active := players_i(pp);
+                IF is_player_active = TRUE & game_state_i = PLAYING
+                THEN
+                    query_player_is_active := TRUE
+                ELSE
+                    query_player_is_active := FALSE
+                END
+            END
         END
 END
