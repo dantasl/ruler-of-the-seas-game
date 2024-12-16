@@ -109,6 +109,7 @@ void RulerOfTheSeas__AddPlayer(RulerOfTheSeas__PLAYER pp)
                         }
                     }
                 }
+                RulerOfTheSeas__available_islands_count = RulerOfTheSeas__available_islands_count-1;
             }
         }
     }
@@ -165,6 +166,7 @@ void RulerOfTheSeas__AcquireIsland(RulerOfTheSeas__PLAYER pp)
                     }
                 }
             }
+            RulerOfTheSeas__available_islands_count = RulerOfTheSeas__available_islands_count-1;
             RulerOfTheSeas__turn_completed_i[pp] = true;
             RulerOfTheSeas__turn_completed_count = RulerOfTheSeas__turn_completed_count+1;
         }

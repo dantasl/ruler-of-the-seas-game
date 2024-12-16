@@ -95,7 +95,8 @@ OPERATIONS
                             found = FALSE => player_islands_i(pp, ii_index) = FALSE
                         VARIANT
                             MAX_ISLANDS - ii_index
-                        END
+                        END;
+                        available_islands_count := available_islands_count - 1
                     END 
                 END
              END
@@ -140,6 +141,7 @@ OPERATIONS
                             MAX_ISLANDS - ii_index
                         END
                     END;
+                    available_islands_count := available_islands_count - 1;
                     turn_completed_i(pp) := TRUE;
                     turn_completed_count := turn_completed_count + 1
                 END
