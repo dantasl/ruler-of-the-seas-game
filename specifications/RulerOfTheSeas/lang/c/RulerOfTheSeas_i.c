@@ -492,3 +492,94 @@ void RulerOfTheSeas__StartNewGame(void)
     }
 }
 
+void RulerOfTheSeas__GetGameState(RulerOfTheSeas__GAME_STATE *query_game_state)
+{
+    (*query_game_state) = RulerOfTheSeas__game_state_i;
+}
+
+void RulerOfTheSeas__GetPlayersCount(int32_t *query_player_count)
+{
+    (*query_player_count) = RulerOfTheSeas__player_count;
+}
+
+void RulerOfTheSeas__CheckPlayerWinner(RulerOfTheSeas__PLAYER pp, bool *query_player_winner)
+{
+    {
+        bool is_winner;
+        
+        is_winner = RulerOfTheSeas__winner_i[pp];
+        if((RulerOfTheSeas__game_state_i == RulerOfTheSeas__FINISHED) &&
+        (is_winner == true))
+        {
+            (*query_player_winner) = true;
+        }
+        else
+        {
+            (*query_player_winner) = false;
+        }
+    }
+}
+
+void RulerOfTheSeas__CheckPlayerTurnCompleted(RulerOfTheSeas__PLAYER pp, bool *query_player_turn_completed)
+{
+    {
+        bool is_turn_completed;
+        
+        is_turn_completed = RulerOfTheSeas__turn_completed_i[pp];
+        if((is_turn_completed == true) &&
+        (RulerOfTheSeas__game_state_i == RulerOfTheSeas__PLAYING))
+        {
+            (*query_player_turn_completed) = true;
+        }
+        else
+        {
+            (*query_player_turn_completed) = false;
+        }
+    }
+}
+
+void RulerOfTheSeas__GetTurnCompletedCount(int32_t *query_turn_completed_count)
+{
+    (*query_turn_completed_count) = RulerOfTheSeas__turn_completed_count;
+}
+
+void RulerOfTheSeas__CheckPlayerIsActive(RulerOfTheSeas__PLAYER pp, bool *query_player_is_active)
+{
+    {
+        bool is_player_active;
+        
+        is_player_active = RulerOfTheSeas__players_i[pp];
+        if((is_player_active == true) &&
+        (RulerOfTheSeas__game_state_i == RulerOfTheSeas__PLAYING))
+        {
+            (*query_player_is_active) = true;
+        }
+        else
+        {
+            (*query_player_is_active) = false;
+        }
+    }
+}
+
+void RulerOfTheSeas__GetPlayerCoins(RulerOfTheSeas__PLAYER pp, int32_t *query_player_coins)
+{
+    (*query_player_coins) = RulerOfTheSeas__player_coins_i[pp];
+}
+
+void RulerOfTheSeas__CheckPlayerHasIsland(RulerOfTheSeas__PLAYER pp, RulerOfTheSeas__ISLAND ii, bool *query_player_has_island)
+{
+    {
+        bool is_player_island;
+        
+        is_player_island = RulerOfTheSeas__player_islands_i[pp][ii];
+        if(is_player_island == true)
+        {
+            (*query_player_has_island) = true;
+        }
+        else
+        {
+            (*query_player_has_island) = false;
+        }
+    }
+}
+

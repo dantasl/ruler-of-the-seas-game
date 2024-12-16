@@ -56,6 +56,14 @@ extern void RulerOfTheSeas__InvestOnHappiness(RulerOfTheSeas__PLAYER pp);
 extern void RulerOfTheSeas__AttackPlayer(RulerOfTheSeas__PLAYER attacker, RulerOfTheSeas__PLAYER victim, int32_t dice_attacker, int32_t dice_victim);
 extern void RulerOfTheSeas__NextTurn(void);
 extern void RulerOfTheSeas__StartNewGame(void);
+extern void RulerOfTheSeas__GetGameState(RulerOfTheSeas__GAME_STATE *query_game_state);
+extern void RulerOfTheSeas__GetPlayersCount(int32_t *query_player_count);
+extern void RulerOfTheSeas__CheckPlayerWinner(RulerOfTheSeas__PLAYER pp, bool *query_player_winner);
+extern void RulerOfTheSeas__CheckPlayerTurnCompleted(RulerOfTheSeas__PLAYER pp, bool *query_player_turn_completed);
+extern void RulerOfTheSeas__GetTurnCompletedCount(int32_t *query_turn_completed_count);
+extern void RulerOfTheSeas__CheckPlayerIsActive(RulerOfTheSeas__PLAYER pp, bool *query_player_is_active);
+extern void RulerOfTheSeas__GetPlayerCoins(RulerOfTheSeas__PLAYER pp, int32_t *query_player_coins);
+extern void RulerOfTheSeas__CheckPlayerHasIsland(RulerOfTheSeas__PLAYER pp, RulerOfTheSeas__ISLAND ii, bool *query_player_has_island);
 
 #ifdef __cplusplus
 }

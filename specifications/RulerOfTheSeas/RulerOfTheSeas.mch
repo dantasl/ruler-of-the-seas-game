@@ -257,6 +257,11 @@ OPERATIONS
             END
         END;
     
+    query_turn_completed_count <-- GetTurnCompletedCount =
+        BEGIN
+            query_turn_completed_count := card(turn_completed)
+        END;
+    
     query_player_is_active <-- CheckPlayerIsActive(pp) =
         PRE
             pp : PLAYER &

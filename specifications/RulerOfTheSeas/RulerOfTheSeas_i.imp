@@ -431,6 +431,11 @@ OPERATIONS
             END
         END;
     
+    query_turn_completed_count <-- GetTurnCompletedCount =
+        BEGIN
+            query_turn_completed_count := turn_completed_count
+        END;
+    
     query_player_is_active <-- CheckPlayerIsActive(pp) =
         BEGIN
             VAR is_player_active IN
