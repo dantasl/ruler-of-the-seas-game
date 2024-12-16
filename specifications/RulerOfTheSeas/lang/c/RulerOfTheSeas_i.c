@@ -560,8 +560,7 @@ void RulerOfTheSeas__CheckPlayerIsActive(RulerOfTheSeas__PLAYER pp, bool *query_
         bool is_player_active;
         
         is_player_active = RulerOfTheSeas__players_i[pp];
-        if((is_player_active == true) &&
-        (RulerOfTheSeas__game_state_i == RulerOfTheSeas__PLAYING))
+        if(is_player_active == true)
         {
             (*query_player_is_active) = true;
         }

@@ -16,6 +16,7 @@ static void handle_invest_happiness(int player);
 static void handle_attack_player(int player);
 static void end_turn_phase(void);
 static int roll_dice(void);
+static void check_game_completion(void);
 
 int main(void)
 {
@@ -287,6 +288,8 @@ static void handle_acquire_island(int player)
     {
         printf("Could not acquire island. Check if you have enough coins or if islands are available.\n");
     }
+
+    check_game_completion();
 }
 
 static void handle_invest_resources(int player)
@@ -302,6 +305,8 @@ static void handle_invest_resources(int player)
     {
         printf("Could not invest on resources. Maybe your turn is already done or game is not in playing state.\n");
     }
+
+    check_game_completion();
 }
 
 static void handle_invest_happiness(int player)
@@ -317,6 +322,8 @@ static void handle_invest_happiness(int player)
     {
         printf("Could not invest on happiness. Check if you have enough coins.\n");
     }
+    
+    check_game_completion();
 }
 
 static void handle_attack_player(int player)
@@ -336,9 +343,16 @@ static void handle_attack_player(int player)
 
     RulerOfTheSeas__AttackPlayer(player, victim, dice_attacker, dice_victim);
 
-    bool turn_completed;
-    RulerOfTheSeas__CheckPlayerTurnCompleted(player, &turn_completed);
-    
+    // Check if the victim lost all islands
+    bool victim_active;
+    RulerOfTheSeas__CheckPlayerIsActive(victim, &victim_active);
+    if (!victim_active)
+    {
+        printf("Player %d has lost all their islands and is out of the game.\n", victim);
+    }
+
+    check_game_completion();
+
     printf("Attack performed.\n");
 }
 
@@ -350,4 +364,27 @@ static void end_turn_phase(void)
 static int roll_dice(void)
 {
     return (rand() % 6) + 1; 
+}
+
+static void check_game_completion(void)
+{
+    int players_count;
+    RulerOfTheSeas__GetPlayersCount(&players_count);
+
+    if (players_count == 1)
+    {
+        printf("Only one player remains. The game is now over.\n");
+
+        // Identify and display the winner
+        for (int p = 0; p < 4; p++)
+        {
+            bool is_winner;
+            RulerOfTheSeas__CheckPlayerWinner(p, &is_winner);
+            if (is_winner)
+            {
+                printf("Player %d is the winner! Congratulations!\n", p);
+                break;
+            }
+        }
+    }
 }

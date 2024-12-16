@@ -445,7 +445,7 @@ OPERATIONS
         BEGIN
             VAR is_player_active IN
                 is_player_active := players_i(pp);
-                IF is_player_active = TRUE & game_state_i = PLAYING
+                IF is_player_active = TRUE
                 THEN
                     query_player_is_active := TRUE
                 ELSE
